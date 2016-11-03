@@ -21,23 +21,39 @@ public:
     root_node = new TreeNode(root_state);
   }
 
-  TreeNode* select()
+  TreeNode* select(double total_sim_count, double k_explore) const
   {
     TreeNode* visiting_node = NULL;
     TreeNode* child_highest_ucb = root_node;
-    do {
+    while (child_highest_ucb != NULL) {
       visiting_node = child_highest_ucb;
-      child_highest_ucb = visiting_node->get_child_highest_ucb();
-    } while (child_highest_ucb != NULL);
+      child_highest_ucb =
+        visiting_node->get_child_highest_ucb(total_sim_count, k_explore);
+    }
     return visiting_node;
   }
 
-  TreeNode* expand(TreeNode* node)
+  TreeNode* expand(TreeNode* node) const
   {
     if (node->is_game_finished()) {
       return node;
     }
+    return node->expand();
+  }
 
+  void simulate(TreeNode* node, std::vector<double>& payoffs) const
+  {
+    node->simulate(payoffs);
+  }
+
+  void backpropagate(TreeNode* node,
+                     const std::vector<double>& payoffs) const
+  {
+    TreeNode* visiting_node = node;
+    while (visiting_node != NULL) {
+      visiting_node->update(payoffs);
+      visiting_node = visiting_node->get_parent();
+    }
   }
 
 private:

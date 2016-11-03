@@ -3,9 +3,9 @@
 
 namespace mcts
 {
-  const char EMPTY = '.';
-  const char BLACK = 'O';
-  const char WHITE = 'X';
+  const int BLACK = 0;
+  const int WHITE = 1;
+  const int EMPTY = 2;
 }
 
 #endif // CONSTANTS_H_INCLUDED

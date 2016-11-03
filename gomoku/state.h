@@ -1,6 +1,8 @@
 #ifndef STATE_H_INCLUDED
 #define STATE_H_INCLUDED
 
+#include <stdexcept>
+
 #include "constants.h"
 
 namespace mcts
@@ -9,23 +11,41 @@ namespace mcts
 class State
 {
 public:
-  State(int board_height, int board_width)
+  std::vector<std::vector<char> > position;
+  char agent_id;
+
+  State(int board_height, int board_width, char agent_id):
+    agent_id(agent_id)
   {
     position = std::vector<std::vector<char>>(board_height,
                std::vector<char>(board_width, EMPTY));
   }
 
   State(const State& other):
-    position(other.position)
+    position(other.position),
+    agent_id(other.agent_id)
   {
   }
 
-  bool is_terminal() const
+  char get_agent_id() const
   {
-    return false;
+    return agent_id;
   }
 
-  std::vector<std::vector<char> > position;
+  void get_expanded_states(std::vector<State> &expanded_states) const
+  {
+    ///TODO Implement expansion
+    expanded_states.clear();
+    State new_state(*this);
+    expanded_states.push_back(new_state);
+  }
+
+  void simulate(std::vector<double> &payoffs) const
+  {
+    ///TODO Implement simulation
+    payoffs[0] = 1.0;
+    payoffs[1] = 1.0;
+  }
 };
 
 std::ostream& operator<<(std::ostream &strm, const State& obj)
@@ -49,7 +69,16 @@ std::ostream& operator<<(std::ostream &strm, const State& obj)
   for (const auto& row : position) {
     strm << (y % 10) << " ";
     for (const auto& val: row) {
-      strm << val << " ";
+      if (val == 0) {
+        strm << 'O';
+      } else if (val == 1) {
+        strm << 'X';
+      } else if (val == 2) {
+        strm << '.';
+      } else {
+        throw std::runtime_error(std::string("Unknown value ") + val);
+      }
+      strm << " ";
     }
     strm << '\n';
     y += 1;
