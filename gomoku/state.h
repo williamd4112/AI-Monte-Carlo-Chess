@@ -108,12 +108,12 @@ namespace mcts
                         new_state.position[i][j] = agent_id;
                         expanded_states.push_back(new_state);
                         visited[i][j] = true;
-                    } 
+                    }
                 }
-            }      
+            }
         }
     };
-
+    
     std::ostream& operator<<(std::ostream &strm, const State& obj)
     {
         const auto& position = obj.position;
@@ -151,5 +151,5 @@ namespace mcts
         }
         return strm;
     }
-
+}
 #endif // STATE_H_INCLUDED
