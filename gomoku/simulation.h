@@ -9,6 +9,7 @@
 #define simulation_h
 
 #include "constants.h"
+#include "time.h"
 
 bool isLine(std::vector<std::vector<char>> &map,std::pair<int, int> &this_step,char char_match,int target,bool open_end)
 {
@@ -25,7 +26,7 @@ bool isLine(std::vector<std::vector<char>> &map,std::pair<int, int> &this_step,c
     }
     // Same column
     int i_min=std::max(0,this_step.first+(-1)*target);
-    int i_max=(map.size()<this_step.second+target)?(int)map.size():this_step.first+target;
+    int i_max=(map.size()<this_step.first+target)?(int)map.size():this_step.first+target;
     for(int i=i_min;i<i_max;i++){
         if(map[i][this_step.second]==char_match || i==this_step.second)
             num_connect++;
@@ -56,11 +57,22 @@ bool random_output(std::vector<std::vector<char>> &map,std::vector<std::pair<int
     if(a.size()>0){
         std::pair<int,int> temp = a[rand()%a.size()];
         map[temp.first][temp.second] = c;
+        /*if(c==mcts::BLACK)
+            std::cout << "BLACK["<<temp.first<<"]["<< temp.second <<"]" << std::endl;
+        else
+            std::cout << "BLACK["<<temp.first<<"]["<< temp.second <<"]" << std::endl;
+        for(std::pair<int, int> item: a){
+            std::cout << "first possible point: a["<<item.first<<"]["<< item.second <<"]" << std::endl;
+        }*/
         return true;
     }
     if(b.size()>0){
         std::pair<int,int> temp = b[rand()%b.size()];
         map[temp.first][temp.second] = c;
+        /*std::cout << "["<<temp.first<<"]["<< temp.second <<"]" << std::endl;
+        for(std::pair<int, int> item: b){
+            std::cout << "second possible point: a["<<item.first<<"]["<< item.second <<"]" << std::endl;
+        }*/
         return true;
     }
     return false;

@@ -65,9 +65,10 @@ namespace mcts
             double TIE = (WIN+LOSE)/2;
             payoffs[BLACK] = 1.0;
             payoffs[WHITE] = 1.0;
-            std::vector<std::vector<char>> map = position;
             
+            std::vector<std::vector<char>> map = position;
             char color = agent_id;
+            
             while(true){
                 char result = who_win(map);
                 if(result == TIE){ // Tie is extremely unusual
@@ -81,8 +82,8 @@ namespace mcts
                     break;
                 }
                 else if(result == WHITE){
-                    payoffs[BLACK] = WIN;
-                    payoffs[WHITE] = LOSE;
+                    payoffs[BLACK] = LOSE;
+                    payoffs[WHITE] = WIN;
                     break;
                 }
                 else {
