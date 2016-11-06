@@ -8,6 +8,7 @@
 
 int main()
 {
+  srand(time(0));
   mcts::State state(15, 15, mcts::BLACK);
   mcts::Tree tree(state);
   mcts::TreeNode* node = tree.select(3, 1.41);
