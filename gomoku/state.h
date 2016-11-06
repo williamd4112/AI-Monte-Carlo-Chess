@@ -59,9 +59,40 @@ public:
 
   void simulate(std::vector<double> &payoffs) const
   {
-    ///TODO Implement simulation
-    payoffs[0] = 1.0;
-    payoffs[1] = 1.0;
+    double WIN = 1.0;
+    double LOSE = 0.0;
+    double TIE = (WIN+LOSE)/2;
+    payoffs[BLACK] = 1.0;
+    payoffs[WHITE] = 1.0;
+    vector<vector<char>> Map = position;
+    
+    char color = agent_id;
+    while(true){
+        char result = whoWin(Map);
+        if(result == TIE){ // Tie is extremely unusual
+            payoffs[BLACK] = TIE;
+            payoffs[WHITE] = TIE;
+            cout << "No one wins." << endl;
+            break;
+        }
+        else if(result == BLACK){
+            payoffs[BLACK] = WIN;
+            payoffs[WHITE] = LOSE;
+            cout << "BLACK wins!" << endl;
+            break;
+        }
+        else if(result == WHITE){
+            payoffs[BLACK] = WIN;
+            payoffs[WHITE] = LOSE;
+            cout << "WHITE wins!" << endl;
+            break;
+        }
+        else {
+            showMap(Map);
+            nextToPlay(Map,color);
+            color = (color==BLACK)? WHITE: BLACK;
+        }
+    }
   }
 private:
    int m_board_height;
@@ -85,6 +116,243 @@ private:
       }      
    }
 };
+  
+  void showMap(vector<vector<char>> &Map) const
+  {
+    cout << "Map" << endl << "  ";
+    char c='A';
+    for(int i=0;i<10;i++){
+        cout << ' ' << i << ' ';
+    } for(int i=10;i<SIZE;i++){
+        cout << i << ' ';
+    } cout << endl;
+    for(int i=0;i<SIZE;i++,c++){
+        cout << c << ' ';
+        for(int j=0;j<SIZE;j++){
+            if(Map[i][j]!=WHITE && Map[i][j]!=BLACK)  cout << ' ' << '+' << ' ';
+            else    cout << ' ' << Map[i][j] << ' ';
+        }
+        cout << endl;
+    }
+}
+
+bool isLine(vector<vector<char>> &Map,pair<int, int> &thisStep,char charMatch,int &target,bool openEnd) const
+{
+    int numConnect=0;
+    // Same row
+    int j_min=max(0,thisStep.second+(-1)*target);
+    int j_max=min(SIZE,thisStep.second+target);
+    for(int j = j_min;j<j_max;j++){
+        if(Map[thisStep.first][j]==charMatch || j==thisStep.second)
+            numConnect++;
+        else{ numConnect=0; }
+        
+        if(numConnect==target) return true;
+    }
+    // Same column
+    int i_min=max(0,thisStep.first+(-1)*target);
+    int i_max=min(SIZE,thisStep.first+target);
+    for(int i=i_min;i<i_max;i++){
+        if(Map[i][thisStep.second]==charMatch || i==thisStep.second)
+            numConnect++;
+        else{ numConnect=0; }
+        
+        if(numConnect==target) return true;
+    }
+    // Cross line
+    for(int i=i_min,j=j_min;j<j_max && i<i_max;i++,j++){
+        if(Map[i][j]==charMatch || (i==thisStep.first && j==thisStep.second))
+            numConnect++;
+        else{ numConnect=0; }
+        
+        if(numConnect==target) return true;
+    }
+    for(int j=j_min,i=i_max-1;j<j_max && i>=i_min;j++,i--){
+        if(Map[i][j]==charMatch || (i==thisStep.first && j==thisStep.second))
+            numConnect++;
+        else{ numConnect=0;}
+        
+        if(numConnect==target) return true;
+    }
+    return false;
+}
+
+bool randomOutput(vector<vector<char>> &Map,vector<pair<int, int>> a, vector<pair<int, int>> b,char c) const
+{
+    if(a.size()>0){
+        pair<int,int> temp = a[rand()%a.size()];
+        Map[temp.first][temp.second] = c;
+        showMap(Map);
+        return true;
+    }
+    if(b.size()>0){
+        pair<int,int> temp = b[rand()%b.size()];
+        Map[temp.first][temp.second] = c;
+        showMap(Map);
+        return true;
+    }
+    return false;
+}
+int nextToPlayLine(vector<vector<char>> &Map,char &color, vector<bool> requireOpenEnd, vector<int> target) const
+{
+    bool bNext = false;
+    bool wNext = false;
+    vector<pair<int, int>> nextPosition,secondNextPosition;
+    for(int i=0;i<SIZE;i++){
+        for(int j=0 ; j<SIZE; j++,bNext = false,wNext = false){
+            pair<int,int> temp_pair = make_pair(i,j);
+            // if occupied, then continue
+            if(Map[i][j]==BLACK||Map[i][j]==WHITE) continue;
+            // check the position qualification
+            int sumBTarget = 0;
+            int sumWTarget = 0;
+            for(int iTarget=0;iTarget<target.size();iTarget++){
+                if(isLine(Map,temp_pair, BLACK, target[iTarget],requireOpenEnd[iTarget])){
+                    sumBTarget++;
+                }
+                if(isLine(Map,temp_pair, WHITE, target[iTarget],requireOpenEnd[iTarget])){
+                    sumWTarget++;
+                }
+            }
+            if(sumBTarget>=target.size()) bNext=true;
+            if(sumWTarget>=target.size()) wNext=true;
+            
+            //if(bNext) cout << "bNext Map[" << i << "][" << j << "]" << endl;
+            //if(wNext) cout << "wNext Map[" << i << "][" << j << "]" << endl;
+            if(color==BLACK){
+                if(bNext) nextPosition.push_back(temp_pair);
+                else if(wNext) secondNextPosition.push_back(temp_pair);
+            }else{
+                if(wNext) nextPosition.push_back(temp_pair);
+                else if(bNext) secondNextPosition.push_back(temp_pair);
+            }
+        }
+    }
+    if(randomOutput(Map,nextPosition,secondNextPosition,color)) return 1;
+    nextPosition.clear();
+    secondNextPosition.clear();
+    return 0;
+}
+
+// return to interrupt
+int nextToPlay(vector<vector<char>> &Map,char &color) const
+{
+    vector<bool> requireOpenEnd;
+    vector<int> target;
+    // five-in-line
+    //cout << "five-in-line" << endl;
+    requireOpenEnd.push_back(false);
+    target.push_back((int)NUMTOWIN-1);
+    if(nextToPlayLine(Map,color, requireOpenEnd, target)>0) return 0;
+    requireOpenEnd.clear();
+    target.clear();
+    // four-in-line-with-open-end
+    requireOpenEnd.push_back(true);
+    target.push_back(NUMTOWIN-2);
+    if(nextToPlayLine(Map,color, requireOpenEnd, target)>0) return 0;
+    requireOpenEnd.clear();
+    target.clear();
+    // four-in-line-without-open-end and three-in-line-with-open-end
+    requireOpenEnd.push_back(false);
+    target.push_back(NUMTOWIN-2);
+    requireOpenEnd.push_back(true);
+    target.push_back(NUMTOWIN-3);
+    if(nextToPlayLine(Map,color, requireOpenEnd, target)>0) return 0;
+    requireOpenEnd.clear();
+    target.clear();
+    // double three-in-line-with-open-end
+    requireOpenEnd.push_back(true);
+    target.push_back(NUMTOWIN-3);
+    requireOpenEnd.push_back(true);
+    target.push_back(NUMTOWIN-3);
+    if(nextToPlayLine(Map,color, requireOpenEnd, target)>0) return 0;
+    requireOpenEnd.clear();
+    target.clear();
+    // three-in-line-with-open-end
+    requireOpenEnd.push_back(true);
+    target.push_back(NUMTOWIN-3);
+    if(nextToPlayLine(Map,color, requireOpenEnd, target)>0) return 0;
+    requireOpenEnd.clear();
+    target.clear();
+    // four-in-line-without-open-end
+    requireOpenEnd.push_back(false);
+    target.push_back(NUMTOWIN-2);
+    if(nextToPlayLine(Map,color, requireOpenEnd, target)>0) return 0;
+    requireOpenEnd.clear();
+    target.clear();
+    // two-in-line-with-open-end
+    requireOpenEnd.push_back(true);
+    target.push_back(NUMTOWIN-4);
+    if(nextToPlayLine(Map,color, requireOpenEnd, target)>0) return 0;
+    requireOpenEnd.clear();
+    target.clear();
+    return 0;
+}
+
+void calWinResult(char c, bool &isTie,int &numB,int &numW,char &result) const
+{
+    if(c==BLACK){
+        isTie = false;
+        numB++;
+        numW=0;
+        if(numB==NUMTOWIN) result = BLACK;
+    }
+    else if(c==WHITE){
+        isTie = false;
+        numB=0;
+        numW++;
+        if(numW==NUMTOWIN) result = WHITE;
+    }
+    else{ numW=0; numB=0; }
+}
+
+char whoWin(vector<vector<char>> &Map) const
+{
+    // Return BLACK if BLACK wins
+    // Return WHITE if WHITE wins
+    bool isTie = true;
+    // Same row or column
+    int numRowBConnect = 0;
+    int numRowWConnect = 0;
+    int numColBConnect = 0;
+    int numColWConnect = 0;
+    char result = -1;
+    for(int i = 0;i<SIZE;i++){
+        numRowBConnect=0;
+        numRowWConnect=0;
+        numColBConnect = 0;
+        numColWConnect = 0;
+        for(int j = 0;j<SIZE;j++){
+            calWinResult(Map[i][j], isTie,numRowBConnect,numRowWConnect,result);
+            calWinResult(Map[j][i], isTie,numColBConnect,numColWConnect,result);
+            if(result!=-1) return result;
+        }
+    }
+    // Cross line
+    // Left-Top to Right-bottom
+    for(int k=0;k<SIZE-NUMTOWIN+1;k++){
+        numRowBConnect=0;
+        numRowWConnect=0;
+        for(int i = k,j = 0;i<SIZE && j<SIZE;i++,j++){
+            calWinResult(Map[i][j], isTie,numRowBConnect,numRowWConnect,result);
+            if(result!=-1) return result;
+        }
+    }
+    // Right-top to Left-bottom
+    for(int k=NUMTOWIN-1;k<SIZE;k++){
+        numRowBConnect=0;
+        numRowWConnect=0;
+        // Different Column
+        for(int i = k,j = 0;i>=0 && j<SIZE;i--,j++){
+            calWinResult(Map[i][j], isTie,numRowBConnect,numRowWConnect,result);
+            if(result!=-1) return result;
+        }
+    }
+    if(isTie==true) return 0;
+    
+    return -1; // Return (-1) if no one wins
+}
+
 
 std::ostream& operator<<(std::ostream &strm, const State& obj)
 {
