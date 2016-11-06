@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H_INCLUDED
 #define CONSTANTS_H_INCLUDED
 
+#define EXPAND_AROUND_RANGE 2
+
 namespace mcts
 {
   const int BLACK = 0;

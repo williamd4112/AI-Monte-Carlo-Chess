@@ -15,7 +15,7 @@ public:
   char agent_id;
 
   State(int board_height, int board_width, char agent_id):
-    agent_id(agent_id)
+    agent_id(agent_id), m_board_height(board_height), m_board_width(board_width)
   {
     position = std::vector<std::vector<char>>(board_height,
                std::vector<char>(board_width, EMPTY));
@@ -35,9 +35,26 @@ public:
   void get_expanded_states(std::vector<State> &expanded_states) const
   {
     ///TODO Implement expansion
+    
+    /* Has been visited during expansion (to avoid duplicated state) */
+    std::vector<std::vector<bool>> visited = std::vector<std::vector<bool>>(m_board_height,
+               std::vector<bool>(m_board_width, false));
+
     expanded_states.clear();
-    State new_state(*this);
-    expanded_states.push_back(new_state);
+    for (int i = 0; i < m_board_height; i++) {
+      for (int j = 0; j < m_board_width; j++) {
+         if (position[i][j] != EMPTY) {
+            expand_around(expanded_states, visited, i, j);
+         }
+      }
+    }
+
+    /* If no chess on the board, set in middle */
+    if (expanded_states.empty()) {
+      State new_state(*this);
+      new_state.position[m_board_height / 2][m_board_width / 2] = agent_id;
+      expanded_states.push_back(new_state);
+    }
   }
 
   void simulate(std::vector<double> &payoffs) const
@@ -46,6 +63,27 @@ public:
     payoffs[0] = 1.0;
     payoffs[1] = 1.0;
   }
+private:
+   int m_board_height;
+   int m_board_width;
+
+   void expand_around(std::vector<State> & expanded_states, std::vector<std::vector<bool>> & visited, int row, int col) const
+   {
+      for (int i = row - EXPAND_AROUND_RANGE; i < row + EXPAND_AROUND_RANGE; i++) {
+         for (int j = col - EXPAND_AROUND_RANGE; j < col + EXPAND_AROUND_RANGE; j++) {
+            if (i < 0 || i >= m_board_height || j < 0 || j >= m_board_width) {
+               continue;
+            }
+            
+            if (position[i][j] == EMPTY && !visited[i][j]) {
+               State new_state(*this);
+               new_state.position[i][j] = agent_id;
+               expanded_states.push_back(new_state);
+               visited[i][j] = true;
+            } 
+         }
+      }      
+   }
 };
 
 std::ostream& operator<<(std::ostream &strm, const State& obj)
