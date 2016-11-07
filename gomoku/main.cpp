@@ -1,22 +1,22 @@
 #include <iostream>
 #include <vector>
 
-#include "constants.h"
-#include "state.h"
-#include "tree.h"
-#include "tree_node.h"
+#include "mcts.h"
 
 int main()
 {
-  mcts::State state(15, 15, mcts::BLACK);
-  mcts::Tree tree(state);
-  mcts::TreeNode* node = tree.select(3, 1.41);
-  node = tree.expand(node);
-  std::vector<double> payoffs {0.0, 0.0};
-  tree.simulate(node, payoffs);
-  tree.backpropagate(node, payoffs);
-  std::cout << *node << '\n';
-  std::cout << state << '\n';
+  const unsigned kMaxDuration = 10000; // In milliseconds
+  const unsigned kMaxIterationCount = 1000000;
+  const double kExplore = 1.41;
+  const bool kVerbose = true;
+  mcts::Timer timer(kMaxDuration, kMaxIterationCount);
+  mcts::MCTS mcts(&timer, kExplore, kVerbose);
+  mcts::State root_state(15, 15, 0);
+  mcts::State result_state(15, 15, 0);
+
+  mcts.run(root_state, result_state);
+
+  std::cout << result_state << '\n';
 
   return 0;
 }

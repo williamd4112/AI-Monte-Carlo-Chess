@@ -15,7 +15,9 @@ public:
   char agent_id;
 
   State(int board_height, int board_width, char agent_id):
-    agent_id(agent_id), m_board_height(board_height), m_board_width(board_width)
+    agent_id(agent_id),
+    m_board_height(board_height),
+    m_board_width(board_width)
   {
     position = std::vector<std::vector<char>>(board_height,
                std::vector<char>(board_width, EMPTY));
@@ -34,18 +36,16 @@ public:
 
   void get_expanded_states(std::vector<State> &expanded_states) const
   {
-    ///TODO Implement expansion
-    
     /* Has been visited during expansion (to avoid duplicated state) */
     std::vector<std::vector<bool>> visited = std::vector<std::vector<bool>>(m_board_height,
-               std::vector<bool>(m_board_width, false));
+                                std::vector<bool>(m_board_width, false));
 
     expanded_states.clear();
     for (int i = 0; i < m_board_height; i++) {
       for (int j = 0; j < m_board_width; j++) {
-         if (position[i][j] != EMPTY) {
-            expand_around(expanded_states, visited, i, j);
-         }
+        if (position[i][j] != EMPTY) {
+          expand_around(expanded_states, visited, i, j);
+        }
       }
     }
 
@@ -64,26 +64,29 @@ public:
     payoffs[1] = 1.0;
   }
 private:
-   int m_board_height;
-   int m_board_width;
+  int m_board_height;
+  int m_board_width;
 
-   void expand_around(std::vector<State> & expanded_states, std::vector<std::vector<bool>> & visited, int row, int col) const
-   {
-      for (int i = row - EXPAND_AROUND_RANGE; i < row + EXPAND_AROUND_RANGE; i++) {
-         for (int j = col - EXPAND_AROUND_RANGE; j < col + EXPAND_AROUND_RANGE; j++) {
-            if (i < 0 || i >= m_board_height || j < 0 || j >= m_board_width) {
-               continue;
-            }
-            
-            if (position[i][j] == EMPTY && !visited[i][j]) {
-               State new_state(*this);
-               new_state.position[i][j] = agent_id;
-               expanded_states.push_back(new_state);
-               visited[i][j] = true;
-            } 
-         }
-      }      
-   }
+  void expand_around(std::vector<State> & expanded_states,
+                     std::vector<std::vector<bool>> & visited,
+                     int row,
+                     int col) const
+  {
+    for (int i = row - EXPAND_AROUND_RANGE; i < row + EXPAND_AROUND_RANGE; i++) {
+      for (int j = col - EXPAND_AROUND_RANGE; j < col + EXPAND_AROUND_RANGE; j++) {
+        if (i < 0 || i >= m_board_height || j < 0 || j >= m_board_width) {
+          continue;
+        }
+
+        if (position[i][j] == EMPTY && !visited[i][j]) {
+          State new_state(*this);
+          new_state.position[i][j] = agent_id;
+          expanded_states.push_back(new_state);
+          visited[i][j] = true;
+        }
+      }
+    }
+  }
 };
 
 std::ostream& operator<<(std::ostream &strm, const State& obj)

@@ -1,6 +1,8 @@
 #ifndef TREE_H_INCLUDED
 #define TREE_H_INCLUDED
 
+#include <cfloat>
+
 #include "state.h"
 #include "tree_node.h"
 
@@ -14,6 +16,11 @@ public:
     root_state(root_state)
   {
     reset();
+  }
+
+  TreeNode* get_root_node()
+  {
+    return root_node;
   }
 
   void reset()
@@ -35,14 +42,22 @@ public:
 
   TreeNode* expand(TreeNode* node) const
   {
-    if (node->is_game_finished()) {
+    if (node->is_fully_expanded() || node->is_game_finished()) {
       return node;
     }
-    return node->expand();
+    TreeNode* expanded_node = node->expand();
+    if (expanded_node != NULL) {
+      return expanded_node;
+    } else {
+      return node;
+    }
   }
 
   void simulate(TreeNode* node, std::vector<double>& payoffs) const
   {
+    if (node->is_game_finished()) {
+      return;
+    }
     node->simulate(payoffs);
   }
 
@@ -54,6 +69,11 @@ public:
       visiting_node->update(payoffs);
       visiting_node = visiting_node->get_parent();
     }
+  }
+
+  TreeNode* get_best_node() const
+  {
+    return root_node->get_child_highest_sim_count();
   }
 
 private:

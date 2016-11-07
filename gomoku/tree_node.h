@@ -25,6 +25,11 @@ public:
   {
   }
 
+  bool is_fully_expanded() const
+  {
+    return children.empty() == false && children.size() == actions.size();
+  }
+
   bool is_game_finished() const
   {
     return game_finished;
@@ -43,6 +48,11 @@ public:
   TreeNode* get_parent() const
   {
     return parent;
+  }
+
+  void get_state(State& out_state) const
+  {
+    out_state = State(state);
   }
 
   TreeNode* get_child_highest_ucb(double total_sim_count,
@@ -67,6 +77,21 @@ public:
     } else {
       return NULL;
     }
+  }
+
+  TreeNode* get_child_highest_sim_count()
+  {
+    TreeNode* child_highest_sim_count = NULL;
+    double highest_sim_count = -DBL_MAX;
+    for (const auto& child_ptr: children) {
+      TreeNode* child = child_ptr.get();
+      double child_sim_count = child->get_simulation_count();
+      if (child_sim_count > highest_sim_count) {
+        child_highest_sim_count = child;
+        highest_sim_count = child_sim_count;
+      }
+    }
+    return child_highest_sim_count;
   }
 
   double get_ucb(double total_sim_count, double k_explore) const
@@ -99,7 +124,7 @@ public:
     state.simulate(payoffs);
   }
 
-  void update(const std::vector<double> &payoffs)
+  void update(const std::vector<double>& payoffs)
   {
     int agent_id = state.get_agent_id();
     payoff += payoffs[agent_id];
@@ -107,29 +132,26 @@ public:
   }
 
 private:
+  /* Relative nodes */
   TreeNode* parent;
   std::vector<Ptr> children;
   std::vector<State> actions;
 
+  /* Node itself */
   double payoff;
   double simulation_count;
   bool game_finished;
   State state;
 
-  bool is_fully_expanded() const
-  {
-    return children.empty() == false && children.size() == actions.size();
-  }
-
   TreeNode *add_child(const State& action)
   {
-    TreeNode *new_child = new TreeNode(action, this);
+    TreeNode* new_child = new TreeNode(action, this);
     children.push_back(Ptr(new_child));
     return new_child;
   }
 };
 
-std::ostream& operator<<(std::ostream &strm, const TreeNode& obj)
+std::ostream& operator<<(std::ostream& strm, const TreeNode& obj)
 {
   return strm << "TreeNode(" << obj.get_payoff() << ")";
 }
