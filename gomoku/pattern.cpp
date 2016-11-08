@@ -33,8 +33,10 @@ bool match_pattern(
     int begin_col = col - cursor * dc;
     int end_row = row + (pattern_len - cursor) * dr;
     int end_col = col + (pattern_len - cursor) * dc;
+
     DEBUG("Begin at (%d, %d) End at (%d, %d)\n", begin_row, begin_col,
       end_row, end_col);   
+
     bool result = true;
     for (int i = 0; i < pattern_len; i++) {
       char type = pattern[i];
@@ -51,6 +53,7 @@ bool match_pattern(
         break;
       }
     }
+
     if (result) {
       DEBUG("Match %s (%d, %d) -> (%d, %d)\n", pattern, begin_row, begin_col, end_row, end_col);      
       return true;

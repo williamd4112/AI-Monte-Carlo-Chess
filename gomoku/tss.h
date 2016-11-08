@@ -7,30 +7,33 @@
 #include "constants"
 #include "state.h"
 
-class Tss
+namespace mcts 
 {
-public:
-  struct point_t
+  class Tss
   {
-    int i, j;
-  }
+  public:
+    struct point_t
+    {
+      int i, j;
+    }
 
-  struct threat_t
-  {
-    std::vector<point_t> gains;
-    std::vector<point_t> costs;
-  }
+    struct threat_t
+    {
+      std::vector<point_t> gains;
+      std::vector<point_t> costs;
+    }
 
-  Tss(const State & state);
-  ~Tss();
-  
-  std::vector<threat_t> & get_threats();
-private:
-  State & m_state;
-  std::vector<threat_t> m_threats; 
+    Tss(const State & state);
+    ~Tss();
+    
+    std::vector<threat_t> & get_threats();
+  private:
+    State & m_state;
+    std::vector<threat_t> m_threats; 
 
-  void find_all_threats();
-  void find_threat_at(int , int);
-};
+    void find_all_threats();
+    void find_threat_at(int , int);
+  };
+}
 
 #endif

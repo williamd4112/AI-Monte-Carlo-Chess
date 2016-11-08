@@ -26,12 +26,10 @@ const static int dirs[4][2] = {
     { -1, 1 }
 };
 
-
-
 tss::tss(const State & state):
   m_state(state)
 {
-
+  find_all_threats();
 }
 
 tss::~tss()
@@ -61,7 +59,13 @@ void tss::find_all_threats()
 void tss::find_threat_at(int row, int col)
 {
   for (int k = 0; k < g_threat_types_num; k++) {
-
+    for (int d = 0; d < 4; d++) {
+      bool result = match_pattern(m_state.position, row, col, m_state.get_width(), m_state.get_height(), dirs[d][0], dirs[d][1],
+        g_threat_rules[k], m_state.agent_id);  
+      if (result) {
+        m_threats.gains.push_back(point_t {row, col});          
+      }
+    }
   }
 }
 
