@@ -51,7 +51,7 @@ bool is_row_line(std::vector<std::vector<char>> &map,std::pair<int, int> &this_s
         if(num_connect==target)
            if(is_open_end(map,this_step.first,j+1,open_end) &&
               is_open_end(map,this_step.first,j-target,open_end)){
-               std::cout<<"map["<<this_step.first<<"]["<< j-target <<" to "<<j+1<<"] is double open for "<<target<<"\n";
+               //std::cout<<"map["<<this_step.first<<"]["<< j-target <<" to "<<j+1<<"] is double open for "<<target<<"\n";
                return true;
            }
     }
@@ -70,7 +70,7 @@ bool is_column_line(std::vector<std::vector<char>> &map,std::pair<int, int> &thi
         if(num_connect==target)
            if(is_open_end(map,i+1,this_step.second,open_end) &&
               is_open_end(map,i-target,this_step.second,open_end)){
-               std::cout<<"map["<<i<<"]["<<this_step.second<<"] is double open for "<<target<<"\n";
+               // std::cout<<"map["<<i<<"]["<<this_step.second<<"] is double open for "<<target<<"\n";
                return true;
            }
     }
@@ -121,11 +121,11 @@ bool random_output(std::vector<std::vector<char>> &map,std::vector<std::pair<int
     if(a.size()>0){
         std::pair<int,int> temp = a[rand()%a.size()];
         map[temp.first][temp.second] = c;
-        if(c==mcts::BLACK)
+        /*if(c==mcts::BLACK)
             std::cout << "BLACK["<<temp.first<<"]["<< temp.second <<"]" << std::endl;
         else
             std::cout << "WHITE["<<temp.first<<"]["<< temp.second <<"]" << std::endl;
-        /*for(std::pair<int, int> item: a){
+        for(std::pair<int, int> item: a){
             std::cout << "first possible point: a["<<item.first<<"]["<< item.second <<"]" << std::endl;
         }*/
         return true;
@@ -178,31 +178,31 @@ int next_to_play(std::vector<std::vector<char>> &map,char &color)
     int target;
     std::vector<std::pair<int,int>> three_in_line, four_in_line, temp_in_line;
     // five-in-line
-    std::cout << "five-in-line" << std::endl;
+    //std::cout << "five-in-line" << std::endl;
     requireopen_end = false;
     target = mcts::NUMTOWIN;
     temp_in_line = next_to_play_each_line(map,color, requireopen_end, target);
     if(random_output(map,temp_in_line,color)>0) return 0;
     // four-in-line-with-open-end
-    std::cout << "four-in-line-with-open-end" << std::endl;
+    //std::cout << "four-in-line-with-open-end" << std::endl;
     requireopen_end = true;
     target = mcts::NUMTOWIN-1;
     temp_in_line = next_to_play_each_line(map,color, requireopen_end, target);
     if(random_output(map,temp_in_line,color)>0) return 0;
     
     // -------------- count three and four and two first ------------------- //
-    std::cout << "four-in-line-with-close-end" << std::endl;
+    //std::cout << "four-in-line-with-close-end" << std::endl;
     requireopen_end = false;
     target = mcts::NUMTOWIN-1;
     four_in_line = next_to_play_each_line(map,color, requireopen_end, target);
     
-    std::cout << "three-in-line-with-open-end" << std::endl;
+    //std::cout << "three-in-line-with-open-end" << std::endl;
     requireopen_end = true;
     target = mcts::NUMTOWIN-2;
     three_in_line = next_to_play_each_line(map,color, requireopen_end, target);
     
     // four-in-line-without-open-end and three-in-line-with-open-end
-    std::cout << "four-in-line-without-open-end and three-in-line-with-open-end" << std::endl;
+    //std::cout << "four-in-line-without-open-end and three-in-line-with-open-end" << std::endl;
     temp_in_line.clear();
     for(std::pair<int,int> p_four: four_in_line){
         for(std::pair<int,int> p_three: three_in_line){
