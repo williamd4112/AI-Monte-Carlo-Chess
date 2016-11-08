@@ -247,7 +247,7 @@ void calculate_each_win_result(char c, bool &is_tie,int &num_black,int &num_whit
     }
 }
 
-char who_win(std::vector<std::vector<char>> &map){  // Return mcts::BLACK if mcts::BLACK wins
+double who_win(std::vector<std::vector<char>> &map){  // Return mcts::BLACK if mcts::BLACK wins
     // Return mcts::WHITE if mcts::WHITE wins
     bool is_tie = true;
     // Same row or column
@@ -291,7 +291,7 @@ char who_win(std::vector<std::vector<char>> &map){  // Return mcts::BLACK if mct
             if(result!=-1) return result;
         }
     }
-    if(is_tie==true) return 0;
+    if(is_tie==true) return 0.5;
 
     return -1; // Return (-1) if no one wins
 }
