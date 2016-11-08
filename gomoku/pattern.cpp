@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstring>
 #include <cstdio>
+#include "debug.h"
 
 #define in_boundary(i, j, w, h) (!((i) < 0 || (i) >= h || (j) < 0 || (j) >= w))
 
@@ -32,7 +33,8 @@ bool match_pattern(
     int begin_col = col - cursor * dc;
     int end_row = row + (pattern_len - cursor) * dr;
     int end_col = col + (pattern_len - cursor) * dc;
-    
+    DEBUG("Begin at (%d, %d) End at (%d, %d)\n", begin_row, begin_col,
+      end_row, end_col);   
     bool result = true;
     for (int i = 0; i < pattern_len; i++) {
       char type = pattern[i];
@@ -40,22 +42,17 @@ bool match_pattern(
       int cur_col = begin_col + dc * i;
 
       if (!in_boundary(cur_row, cur_col, w, h)) {
+        result = false;
         break;
       }
-#ifdef _DEBUG
-      putchar((position[cur_row][cur_col] == agent_id) ? 'o' : 
-        (position[cur_row][cur_col] == mcts::EMPTY) ? '_' : 'x');
-#endif
 
       if (!match_pattern_position(type, position[cur_row][cur_col], agent_id)) {
         result = false;
         break;
       }
     }
-#ifdef _DEBUG
-      putchar('\n');
-#endif
     if (result) {
+      DEBUG("Match %s (%d, %d) -> (%d, %d)\n", pattern, begin_row, begin_col, end_row, end_col);      
       return true;
     }
   }
