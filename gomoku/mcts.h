@@ -3,7 +3,6 @@
 
 #include <vector>
 
-#include "constants.h"
 #include "state.h"
 #include "timer.h"
 #include "tree.h"
@@ -21,7 +20,7 @@ public:
   {
   }
 
-  void run(const State& root_state, State& result_state)
+  void run(const State& root_state, State& result_state) const
   {
     Tree tree(root_state);
     TreeNode* root_node = tree.get_root_node();

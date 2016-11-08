@@ -6,7 +6,7 @@
 int main()
 {
   const unsigned kMaxDuration = 1000; // In milliseconds
-  const unsigned kMaxIterationCount = 10000;
+  const unsigned kMaxIterationCount = 1;
   const double kExplore = 1.41;
   const bool kVerbose = true;
   mcts::Timer timer(kMaxDuration, kMaxIterationCount);

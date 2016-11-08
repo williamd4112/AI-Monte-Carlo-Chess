@@ -36,6 +36,20 @@ public:
     return game_finished;
   }
 
+  double get_ucb(double total_sim_count, double k_explore) const
+  {
+    double exploitation = payoff / (simulation_count + DBL_EPSILON);
+    double exploration = sqrt(log(total_sim_count + 1) /
+                              (simulation_count + DBL_EPSILON));
+    double score = exploitation + k_explore * exploration;
+    return score;
+  }
+
+  TreeNode* get_parent() const
+  {
+    return parent;
+  }
+
   double get_payoff() const
   {
     return payoff;
@@ -44,11 +58,6 @@ public:
   double get_simulation_count() const
   {
     return simulation_count;
-  }
-
-  TreeNode* get_parent() const
-  {
-    return parent;
   }
 
   void get_state(State& out_state) const
@@ -95,15 +104,6 @@ public:
     return child_highest_sim_count;
   }
 
-  double get_ucb(double total_sim_count, double k_explore) const
-  {
-    double exploitation = payoff / (simulation_count + DBL_EPSILON);
-    double exploration = sqrt(log(total_sim_count + 1) /
-                              (simulation_count + DBL_EPSILON));
-    double score = exploitation + k_explore * exploration;
-    return score;
-  }
-
   TreeNode* expand()
   {
     if (is_fully_expanded()) {
@@ -127,8 +127,7 @@ public:
 
   void update(const std::vector<double>& payoffs)
   {
-    int agent_id = state.get_agent_id();
-    payoff += payoffs[agent_id];
+    payoff += payoffs[state.agent_id];
     simulation_count += 1;
   }
 
@@ -144,7 +143,7 @@ private:
   bool game_finished;
   State state;
 
-  TreeNode *add_child(const State& action)
+  TreeNode* add_child(const State& action)
   {
     TreeNode* new_child = new TreeNode(action, this);
     children.push_back(Ptr(new_child));

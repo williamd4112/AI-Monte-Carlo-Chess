@@ -6,6 +6,7 @@
 
 namespace mcts
 {
+
 class Timer
 {
   typedef std::chrono::high_resolution_clock Clock;
@@ -30,6 +31,14 @@ public:
     return duration.count();
   }
 
+  bool check_resource_limit()
+  {
+    Clock::time_point end_time = Clock::now();
+    duration = std::chrono::duration_cast<Units>(end_time - start_time);
+    return (duration > max_duration) ||
+           (iteration_count > max_iteration_count);
+  }
+
   void reset()
   {
     iteration_count = 0;
@@ -44,15 +53,8 @@ public:
   {
     iteration_count += 1;
   }
-
-  bool check_resource_limit()
-  {
-    Clock::time_point end_time = Clock::now();
-    duration = std::chrono::duration_cast<Units>(end_time - start_time);
-    return (duration > max_duration) ||
-           (iteration_count > max_iteration_count);
-  }
 };
+
 }
 
 #endif // TIMER_H_INCLUDED

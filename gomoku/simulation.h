@@ -1,15 +1,11 @@
-//
-//  simulation.h
-//  AI-Monte-Carlo-Chess / gomoku
-//
-//  Copyright © 2016年 lin. All rights reserved.
-//
-
 #ifndef simulation_h
 #define simulation_h
 
+#include <cstdlib>
+#include <ctime>
+
 #include "constants.h"
-#include "time.h"
+
 void show_map(std::vector<std::vector<char>> &map){
     std::cout << std::endl << "   ";
     char c='A';
@@ -27,7 +23,7 @@ void show_map(std::vector<std::vector<char>> &map){
         }
         std::cout << std::endl;
     }
-    
+
 }
 bool is_open_end(std::vector<std::vector<char>> &map,int i, int j,bool requirement){
     if(!requirement) return true;
@@ -43,11 +39,11 @@ bool is_row_line(std::vector<std::vector<char>> &map,std::pair<int, int> &this_s
     int j_min=std::max(0,this_step.second+(-1)*target);
     int j_max=(map.size()<this_step.second+target)?(int)map.size():this_step.second+target;
     for(int j = j_min;j<j_max;j++){
-        
+
         if(map[this_step.first][j]==char_match || j==this_step.second)
             num_connect++;
         else{ num_connect=0; }
-        
+
         if(num_connect==target)
            if(is_open_end(map,this_step.first,j+1,open_end) &&
               is_open_end(map,this_step.first,j-target,open_end)){
@@ -66,7 +62,7 @@ bool is_column_line(std::vector<std::vector<char>> &map,std::pair<int, int> &thi
         if(map[i][this_step.second]==char_match || i==this_step.first)
             num_connect++;
         else{ num_connect=0; }
-        
+
         if(num_connect==target)
            if(is_open_end(map,i+1,this_step.second,open_end) &&
               is_open_end(map,i-target,this_step.second,open_end)){
@@ -81,14 +77,14 @@ bool is_cross1_line(std::vector<std::vector<char>> &map,std::pair<int, int> &thi
     // Cross line
     int i_min=std::max(0,this_step.first+(-1)*target);
     int i_max=(map.size()<this_step.first+target)?(int)map.size():this_step.first+target;
-    
+
     int j_min=std::max(0,this_step.second+(-1)*target);
     int j_max=(map.size()<this_step.second+target)?(int)map.size():this_step.second+target;
     for(int i=i_min,j=j_min,num_connect=0;j<j_max && i<i_max;i++,j++){
         if(map[i][j]==char_match || (i==this_step.first && j==this_step.second))
             num_connect++;
         else{ num_connect=0; }
-        
+
         if(num_connect==target &&
            (is_open_end(map,i+1,j+1,open_end) &&
             is_open_end(map,i-target,j-target,open_end)))
@@ -100,7 +96,7 @@ bool is_cross2_line(std::vector<std::vector<char>> &map,std::pair<int, int> &thi
 {
     int i_min=std::max(0,this_step.first+(-1)*target);
     int i_max=(map.size()-1<this_step.first+target)?(int)map.size()-1:this_step.first+target;
-    
+
     int j_min=std::max(0,this_step.second+(-1)*target);
     int j_max=(map.size()-1<this_step.second+target)?(int)map.size()-1:this_step.second+target;
     // Cross line
@@ -108,7 +104,7 @@ bool is_cross2_line(std::vector<std::vector<char>> &map,std::pair<int, int> &thi
         if(map[i][j]==char_match || (i==this_step.first && j==this_step.second))
             num_connect++;
         else{ num_connect=0;}
-        
+
         if(num_connect==target &&
            (is_open_end(map,i+1,j+1,open_end) &&
             is_open_end(map,i-target,j-target,open_end)))
@@ -189,18 +185,18 @@ int next_to_play(std::vector<std::vector<char>> &map,char &color)
     target = mcts::NUMTOWIN-1;
     temp_in_line = next_to_play_each_line(map,color, requireopen_end, target);
     if(random_output(map,temp_in_line,color)>0) return 0;
-    
+
     // -------------- count three and four and two first ------------------- //
     //std::cout << "four-in-line-with-close-end" << std::endl;
     requireopen_end = false;
     target = mcts::NUMTOWIN-1;
     four_in_line = next_to_play_each_line(map,color, requireopen_end, target);
-    
+
     //std::cout << "three-in-line-with-open-end" << std::endl;
     requireopen_end = true;
     target = mcts::NUMTOWIN-2;
     three_in_line = next_to_play_each_line(map,color, requireopen_end, target);
-    
+
     // four-in-line-without-open-end and three-in-line-with-open-end
     //std::cout << "four-in-line-without-open-end and three-in-line-with-open-end" << std::endl;
     temp_in_line.clear();
@@ -213,10 +209,10 @@ int next_to_play(std::vector<std::vector<char>> &map,char &color)
         }
     }
     if(random_output(map,temp_in_line,color)>0) return 0;
-    
+
     // double three-in-line-with-open-end
     ;
-    
+
     // three-in-line-with-open-end
     if(random_output(map,three_in_line,color)>0) return 0;
     // four-in-line-without-open-end
@@ -228,7 +224,7 @@ int next_to_play(std::vector<std::vector<char>> &map,char &color)
         temp_in_line = next_to_play_each_line(map,color, requireopen_end, target);
         if(random_output(map,temp_in_line,color)>0) return 0;
     }
-    
+
     return -1;
 }
 
@@ -296,7 +292,7 @@ char who_win(std::vector<std::vector<char>> &map){  // Return mcts::BLACK if mct
         }
     }
     if(is_tie==true) return 0;
-    
+
     return -1; // Return (-1) if no one wins
 }
 
