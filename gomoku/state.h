@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "constants.h"
+#include "simulation.h"
 
 namespace mcts
 {
@@ -58,11 +59,40 @@ public:
   }
 
   void simulate(std::vector<double> &payoffs) const
-  {
-    ///TODO Implement simulation
-    payoffs[0] = 1.0;
-    payoffs[1] = 1.0;
-  }
+        {
+            double WIN = 1.0;
+            double LOSE = 0.0;
+            double TIE = (WIN+LOSE)/2;
+            payoffs[BLACK] = 1.0;
+            payoffs[WHITE] = 1.0;
+            
+            std::vector<std::vector<char>> map = position;
+            char color = agent_id;
+            
+            while(true){
+                char result = who_win(map);
+                if(result == TIE){ // Tie is extremely unusual
+                    payoffs[BLACK] = TIE;
+                    payoffs[WHITE] = TIE;
+                    break;
+                }
+                else if(result == BLACK){
+                    payoffs[BLACK] = WIN;
+                    payoffs[WHITE] = LOSE;
+                    break;
+                }
+                else if(result == WHITE){
+                    payoffs[BLACK] = LOSE;
+                    payoffs[WHITE] = WIN;
+                    break;
+                }
+                else {
+                    next_to_play(map,color);
+                    color = (color==BLACK)? WHITE: BLACK;
+                    show_map(map);
+                }
+            }
+        }
 private:
   int m_board_height;
   int m_board_width;
