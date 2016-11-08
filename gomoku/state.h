@@ -81,7 +81,7 @@ public:
 
     while(true) {
       char result = who_win(map);
-      if(result == 0) { // Tie is extremely unusual
+      if(result == TIE) { // Tie is extremely unusual
         payoffs[BLACK] = TIE;
         payoffs[WHITE] = TIE;
         break;
