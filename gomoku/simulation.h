@@ -221,7 +221,7 @@ int next_to_play(std::vector<std::vector<char>> &map,char &color)
     for(int i=mcts::NUMTOWIN-3;i>0;i--){
         requireopen_end = true;
         target = mcts::NUMTOWIN-3;
-        temp_in_line = next_to_play_each_line(map,color, requireopen_end, target);
+        temp_in_line = next_to_play_each_line(map,color, requireopen_end, i);
         if(random_output(map,temp_in_line,color)>0) return 0;
     }
 
