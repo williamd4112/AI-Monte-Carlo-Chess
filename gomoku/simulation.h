@@ -43,6 +43,7 @@ bool is_row_line(std::vector<std::vector<char>> &map,std::pair<int, int> &this_s
     int j_min=std::max(0,this_step.second+(-1)*target);
     int j_max=(map.size()<this_step.second+target)?(int)map.size():this_step.second+target;
     for(int j = j_min;j<j_max;j++){
+        
         if(map[this_step.first][j]==char_match || j==this_step.second)
             num_connect++;
         else{ num_connect=0; }
@@ -50,7 +51,7 @@ bool is_row_line(std::vector<std::vector<char>> &map,std::pair<int, int> &this_s
         if(num_connect==target)
            if(is_open_end(map,this_step.first,j+1,open_end) &&
               is_open_end(map,this_step.first,j-target,open_end)){
-               std::cout<<"map["<<this_step.first<<"]["<<j<<"] is double open for "<<target<<"\n";
+               std::cout<<"map["<<this_step.first<<"]["<< j-target <<" to "<<j+1<<"] is double open for "<<target<<"\n";
                return true;
            }
     }
@@ -151,7 +152,7 @@ std::vector<std::pair<int,int>> next_to_play_each_line(std::vector<std::vector<c
         for(int j=0 ; j<map.size(); j++,b_next = false,w_next = false){
             std::pair<int,int> temp_pair = std::make_pair(i,j);
             // if occupied, then continue
-            if(map[i][j]==mcts::BLACK||map[i][j]==mcts::WHITE) continue;
+            if(map[i][j]==mcts::BLACK||map[i][j]==mcts::WHITE|| map[i][j]==-1) continue;
             // check the position qualification
             if(color==mcts::BLACK){
                 if(four_direction_check(map,temp_pair,mcts::BLACK,target,requireopen_end))
@@ -205,7 +206,10 @@ int next_to_play(std::vector<std::vector<char>> &map,char &color)
     temp_in_line.clear();
     for(std::pair<int,int> p_four: four_in_line){
         for(std::pair<int,int> p_three: three_in_line){
-            if(p_four==p_three) temp_in_line.push_back(p_three);
+            if(p_four==p_three) {
+                temp_in_line.push_back(p_three);
+                ;
+            }
         }
     }
     if(random_output(map,temp_in_line,color)>0) return 0;
@@ -218,10 +222,12 @@ int next_to_play(std::vector<std::vector<char>> &map,char &color)
     // four-in-line-without-open-end
     if(random_output(map,four_in_line,color)>0) return 0;
     // two-in-line-with-open-end
-    requireopen_end = true;
-    target = mcts::NUMTOWIN-3;
-    temp_in_line = next_to_play_each_line(map,color, requireopen_end, target);
-    if(random_output(map,temp_in_line,color)>0) return 0;
+    for(int i=mcts::NUMTOWIN-3;i>0;i--){
+        requireopen_end = true;
+        target = mcts::NUMTOWIN-3;
+        temp_in_line = next_to_play_each_line(map,color, requireopen_end, target);
+        if(random_output(map,temp_in_line,color)>0) return 0;
+    }
     
     return -1;
 }
@@ -239,7 +245,10 @@ void calculate_each_win_result(char c, bool &is_tie,int &num_black,int &num_whit
         num_white++;
         if(num_white==mcts::NUMTOWIN) result = mcts::WHITE;
     }
-    else{ num_white=0; num_black=0; }
+    else{
+        num_white=0;
+        num_black=0;
+    }
 }
 
 char who_win(std::vector<std::vector<char>> &map){  // Return mcts::BLACK if mcts::BLACK wins
