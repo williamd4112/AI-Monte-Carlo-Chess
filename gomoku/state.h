@@ -89,7 +89,7 @@ public:
                 else {
                     next_to_play(map,color);
                     color = (color==BLACK)? WHITE: BLACK;
-                    show_map(map);
+                    //show_map(map);
                 }
             }
         }
