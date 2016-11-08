@@ -68,22 +68,22 @@ namespace mcts
             
             std::vector<std::vector<char>> map = position;
             char color = agent_id;
-            
+            for(int i=0;i<NUMTOSIMULATE;i++){
             while(true){
                 char result = who_win(map);
                 if(result == TIE){ // Tie is extremely unusual
-                    payoffs[BLACK] = TIE;
-                    payoffs[WHITE] = TIE;
+                    payoffs[BLACK] += TIE;
+                    payoffs[WHITE] += TIE;
                     break;
                 }
                 else if(result == BLACK){
-                    payoffs[BLACK] = WIN;
-                    payoffs[WHITE] = LOSE;
+                    payoffs[BLACK] += WIN;
+                    payoffs[WHITE] += LOSE;
                     break;
                 }
                 else if(result == WHITE){
-                    payoffs[BLACK] = LOSE;
-                    payoffs[WHITE] = WIN;
+                    payoffs[BLACK] += LOSE;
+                    payoffs[WHITE] += WIN;
                     break;
                 }
                 else {
@@ -91,6 +91,9 @@ namespace mcts
                     color = (color==BLACK)? WHITE: BLACK;
                 }
             }
+            }
+            payoffs[BLACK] /= NUMTOSIMULATE;
+            payoffs[WHITE] /= NUMTOSIMULATE;
         }
     private:
         int m_board_height;
