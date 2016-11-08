@@ -19,7 +19,7 @@ public:
   TreeNode(const State& state, TreeNode* parent = NULL):
     parent(parent),
     payoff(0.0),
-    simulation_count(0),
+    simulation_count(0.0),
     game_finished(false),
     state(state)
   {
@@ -27,7 +27,8 @@ public:
 
   bool is_fully_expanded() const
   {
-    return children.empty() == false && children.size() == actions.size();
+    return (!children.empty()) &&
+           (children.size() == actions.size());
   }
 
   bool is_game_finished() const
@@ -79,7 +80,7 @@ public:
     }
   }
 
-  TreeNode* get_child_highest_sim_count()
+  TreeNode* get_child_highest_sim_count() const
   {
     TreeNode* child_highest_sim_count = NULL;
     double highest_sim_count = -DBL_MAX;

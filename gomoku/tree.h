@@ -18,7 +18,7 @@ public:
     reset();
   }
 
-  TreeNode* get_root_node()
+  TreeNode* get_root_node() const
   {
     return root_node;
   }
