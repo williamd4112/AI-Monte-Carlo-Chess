@@ -9,6 +9,7 @@ namespace mcts
   const int WHITE = 1;
   const int EMPTY = 2;
   const int NUMTOWIN = 5;
+  const int NUMTOSIMULATE = 20;
 }
 
 #endif // CONSTANTS_H_INCLUDED
