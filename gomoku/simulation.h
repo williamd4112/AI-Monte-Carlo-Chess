@@ -6,25 +6,6 @@
 
 #include "constants.h"
 
-void show_map(std::vector<std::vector<char>> &map){
-    std::cout << std::endl << "   ";
-    char c='A';
-    for(int i=0;i<10;i++){
-        std::cout << ' ' << i << ' ';
-    } for(int i=10;i<map.size();i++){
-        std::cout << i << ' ';
-    } std::cout << std::endl;
-    for(int i=0;i<map.size();i++,c++){
-        std::cout << c << i%10 << ' ';
-        for(int j=0;j<map.size();j++){
-            char temp = map[i][j]+'A';
-            if(map[i][j]!=mcts::WHITE && map[i][j]!=mcts::BLACK)  std::cout << ' ' << '+' << ' ';
-            else    std::cout << ' ' << temp << ' ';
-        }
-        std::cout << std::endl;
-    }
-
-}
 bool is_open_end(std::vector<std::vector<char>> &map,int i, int j,bool requirement){
     if(!requirement) return true;
     if(i<0||i>=map.size()) return false;
@@ -226,74 +207,6 @@ int next_to_play(std::vector<std::vector<char>> &map,char &color)
     }
 
     return -1;
-}
-
-void calculate_each_win_result(char c, bool &is_tie,int &num_black,int &num_white,char &result) {
-    if(c==mcts::BLACK){
-        is_tie = false;
-        num_black++;
-        num_white=0;
-        if(num_black==mcts::NUMTOWIN) result = mcts::BLACK;
-    }
-    else if(c==mcts::WHITE){
-        is_tie = false;
-        num_black=0;
-        num_white++;
-        if(num_white==mcts::NUMTOWIN) result = mcts::WHITE;
-    }
-    else{
-        num_white=0;
-        num_black=0;
-    }
-}
-
-double who_win(std::vector<std::vector<char>> &map){  // Return mcts::BLACK if mcts::BLACK wins
-    // Return mcts::WHITE if mcts::WHITE wins
-    bool is_tie = true;
-    // Same row or column
-    int num_row_black_connect = 0;
-    int num_row_white_connect = 0;
-    int num_column_black_connect = 0;
-    int num_column_white_connect = 0;
-    char result = -1;
-    for(int i = 0;i<map.size();i++){
-        num_row_black_connect=0;
-        num_row_white_connect=0;
-        num_column_black_connect = 0;
-        num_column_white_connect = 0;
-        for(int j = 0;j<map.size();j++){
-            calculate_each_win_result(map[i][j], is_tie,num_row_black_connect,num_row_white_connect,result);
-            if(result!=-1) return result;
-            calculate_each_win_result(map[j][i], is_tie,num_column_black_connect,num_column_white_connect,result);
-            if(result!=-1) return result;
-        }
-    }
-    // Cross line
-    for(int k=0;k<map.size()-mcts::NUMTOWIN+1;k++){
-        num_row_black_connect=0;
-        num_row_white_connect=0;
-        num_column_black_connect = 0;
-        num_column_white_connect = 0;
-        for(int i = k,j = 0;i<map.size() && j<map.size();i++,j++){
-            calculate_each_win_result(map[i][j], is_tie,num_row_black_connect,num_row_white_connect,result);
-            if(result!=-1) return result;
-            calculate_each_win_result(map[map.size()-i-1][j], is_tie,num_column_black_connect,num_column_white_connect,result);
-            if(result!=-1) return result;
-        }
-        num_row_black_connect=0;
-        num_row_white_connect=0;
-        num_column_black_connect = 0;
-        num_column_white_connect = 0;
-        for(int i = 0,j = k;i<map.size() && j<map.size();i++,j++){
-            calculate_each_win_result(map[i][j], is_tie,num_row_black_connect,num_row_white_connect,result);
-            if(result!=-1) return result;
-            calculate_each_win_result(map[i][map.size()-j-1], is_tie,num_column_black_connect,num_column_white_connect,result);
-            if(result!=-1) return result;
-        }
-    }
-    if(is_tie==true) return 0.5;
-
-    return -1; // Return (-1) if no one wins
 }
 
 #endif /* simulation_h */

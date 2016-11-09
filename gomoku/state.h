@@ -5,6 +5,7 @@
 
 #include "constants.h"
 #include "simulation.h"
+#include "simulation_usual.h"
 #include "util.h"
 
 namespace mcts
