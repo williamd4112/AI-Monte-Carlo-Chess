@@ -98,6 +98,10 @@ public:
   struct point_t
   {
     int i, j;
+    friend bool operator ==(const point_t & a, const point_t & b)
+    {
+        return a.i == b.i && a.j == b.j;
+    }
   };
 
   /*
