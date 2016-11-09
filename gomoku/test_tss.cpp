@@ -21,7 +21,7 @@ int main()
 
   Tss tss(state);
   std::vector<Tss::threat_t> threats;
-  tss.find_all_threats(threats);
+  tss.find_all_threats(threats, THREAT_LEVEL_4, THREAT_LEVEL_5);
   for (Tss::threat_t threat : threats) {
     Tss::point_t & p = threat.point;
     int old = state.position[p.i][p.j];
