@@ -12,7 +12,7 @@
 #include "debug.h"
 
 #define CRITICAL_THREAT_TYPE_ID 0
-#define CRITICAL_THREAT_GAIN 3
+#define CRITICAL_THREAT_GAIN 0xff
 #define BEGIN 0
 #define END 1
 #define DR 0
@@ -27,45 +27,43 @@ namespace mcts
 {
 const static char * g_threat_types[] = {
   /* Five */
-  "ooooo",
+  "ooooo", // 0
+
   /* Four */
-  "oooo_",
-  "ooo_o",
-  "oo_oo",
-  "o_ooo",
-  "_oooo",
+  "oooo_", // 1
+  "ooo_o", // 2
+  "oo_oo", // 3
+  "o_ooo", // 4
+  "_oooo", // 5
+
   /* Three */
-  "_ooo_",
-  "_o_oo_",
-  "_oo_o_"
+  "_ooo_",  // 6
+  "_o_oo_", // 7
+  "_oo_o_", // 8
+
   /* Two */
-  "oo___",
-  "_oo__",
-  "__oo_",
-  "___oo",
-  "o_o__",
-  "o__o_",
-  "o___o",
-  "_o_o_",
-  "_o__o",
-  "__o_o",
+  "oo___", // 9
+  "_oo__", // 10
+  "__oo_", // 11
+  "___oo", // 12
+
   /* One */
-  "o____",
-  "_o___",
-  "__o__",
-  "___o_",
-  "____o"
+  "o____", // 13
+  "_o___", // 14
+  "__o__", // 15
+  "___o_", // 16
+  "____o"  // 17
 };
 
 const static int g_threat_levels[][2] = {
     /* Level 1 */
-    {19, 23},
+    {17, 13},
     /* Level 2 */
-    {9, 18},
+    {12, 9},
     /* Level 3 */
-    {6, 8},
+    {8, 6},
     /* Level 4 */
-    {1, 5},
+    {5, 1},
     /* Level 5 */
     {0, 0}
 };
@@ -79,9 +77,9 @@ const static int g_threat_types_num = sizeof(g_threat_types) / sizeof(char *);
  * Diagonal-Bottom
  */
 const static int dirs[4][2] = {
-    { 1, 0 },
-    { 0, 1 },
-    { 1, 1 },
+    {  1, 0 },
+    {  0, 1 },
+    {  1, 1 },
     { -1, 1 }
 };
 
@@ -152,6 +150,11 @@ private:
 mcts::Tss::Tss(const mcts::State & state):
   m_state(state)
 {
+#ifdef _DEBUG_TSS
+    for (int i = 0; i < g_threat_types_num; i++) {
+        printf("Pattern [%d] = %s\n", i, g_threat_types[i]);
+    }
+#endif
 }
 
 mcts::Tss::~Tss()
@@ -161,6 +164,9 @@ mcts::Tss::~Tss()
 
 std::vector<Tss::threat_t> & Tss::find_all_threats(std::vector<threat_t> & threats, int begin, int end)
 {
+  /* No level 1, for now */
+  assert(begin != THREAT_LEVEL_1 && end != THREAT_LEVEL_1);
+
   int w = m_state.board_width;
   int h = m_state.board_height;
 
@@ -170,18 +176,12 @@ std::vector<Tss::threat_t> & Tss::find_all_threats(std::vector<threat_t> & threa
     for (int j = 0; j < w; j++) {
       if (m_state.position[i][j] == mcts::EMPTY) {
 
-          position[i][j] = m_state.agent_id;
-          int gain = find_threat_at(position, i, j, w, h, m_state.agent_id, begin, end, threats);
-          position[i][j] = mcts::EMPTY;
-
-          if (gain >= CRITICAL_THREAT_GAIN) {
-              std::sort(threats.begin(), threats.end(), std::greater<threat_t>());
-              return threats;
-          }
+        position[i][j] = m_state.agent_id;
+        int gain = find_threat_at(position, i, j, w, h, m_state.agent_id, begin, end, threats);
+        position[i][j] = mcts::EMPTY;
       }
     }
   }
-
   std::sort(threats.begin(), threats.end(), std::greater<threat_t>());
 
   return threats;
@@ -198,14 +198,18 @@ int Tss::find_threat_at(const State::Position & position,
   DEBUG_TSS("From %d to %d\n", end_pattern_id, begin_pattern_id);
 
   for (int k = end_pattern_id; k <= begin_pattern_id; k++) {
+    DEBUG_TSS("Try pattern %d (%s)\n", k, g_threat_types[k]);
+
     for (int d = 0; d < 4; d++) {
       bool result = match_pattern(position,
-                            row, col, w, h, dirs[d][DR], dirs[d][DC],
-                            g_threat_types[k], agent_id);
+        row, col, w, h, dirs[d][DR], dirs[d][DC],
+        g_threat_types[k], agent_id);
+
       if (result) {
+        DEBUG_TSS("Match pattern %d (%s)\n", k, g_threat_types[k]);
         threat.gain++;
 
-        /* Crtical action, one step winning (add gain again, since one step win should have higher priority than double threat)*/
+        /* Crtical action, one step winning (add gain again, since one step win should have higher priority than double threat) */
         if (k == CRITICAL_THREAT_TYPE_ID) {
             threat.gain = CRITICAL_THREAT_GAIN;
             threat_list.push_back(threat);
