@@ -83,13 +83,13 @@ public:
   /*
    * @brief test set chess on each empty position to
    *        find all possible threats in the board, sorted by threat gain
+   * @param[OUT] threats find all threats and push into threats
    * @return threat list
    * */
-  std::vector<threat_t> & find_all_threats();
+  std::vector<threat_t> & find_all_threats(std::vector<threat_t> & threats);
 
 private:
   const State & m_state;
-  std::vector<threat_t> m_threats;
 
   /*
    * @brief find threat caused by setting a chess in (row, col)
@@ -115,7 +115,7 @@ mcts::Tss::~Tss()
 
 }
 
-std::vector<Tss::threat_t> & Tss::find_all_threats()
+std::vector<Tss::threat_t> & Tss::find_all_threats(std::vector<threat_t> & threats)
 {
   int w = m_state.board_width;
   int h = m_state.board_height;
@@ -127,16 +127,16 @@ std::vector<Tss::threat_t> & Tss::find_all_threats()
       if (m_state.position[i][j] == mcts::EMPTY) {
 
           position[i][j] = m_state.agent_id;
-          int gain = find_threat_at(position, i, j, w, h, m_state.agent_id, m_threats);
+          int gain = find_threat_at(position, i, j, w, h, m_state.agent_id, threats);
           position[i][j] = mcts::EMPTY;
 
       }
     }
   }
 
-  std::sort(m_threats.begin(), m_threats.end(), std::greater<threat_t>());
+  std::sort(threats.begin(), threats.end(), std::greater<threat_t>());
 
-  return m_threats;
+  return threats;
 }
 
 int Tss::find_threat_at(const State::Position & position,
