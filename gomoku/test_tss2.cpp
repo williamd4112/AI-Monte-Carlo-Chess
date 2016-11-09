@@ -20,14 +20,12 @@ int main()
   }
 
   Tss tss(state);
-  std::vector<Tss::threat_t> threats;
-  tss.find_all_threats(threats, THREAT_LEVEL_4, THREAT_LEVEL_5);
+  std::vector<Tss::point_t> points;
+  tss.find_possible_points(points);
 
-  for (Tss::threat_t threat : threats) {
-    Tss::point_t & p = threat.point;
+  for (Tss::point_t p : points) {
     int old = state.position[p.i][p.j];
     state.position[p.i][p.j] = BLACK;
-    cout << "(" << p.i << ", " << p.j << ")" << " = " << threat.gain << endl;
     cout << state << endl;
     state.position[p.i][p.j] = old;
   }

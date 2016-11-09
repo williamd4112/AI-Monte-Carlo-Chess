@@ -22,6 +22,7 @@
 #define THREAT_LEVEL_3 2
 #define THREAT_LEVEL_4 3
 #define THREAT_LEVEL_5 4
+#define RANDOM_SEARCH_RANGE 2
 
 namespace mcts
 {
@@ -128,6 +129,11 @@ public:
    * */
   std::vector<threat_t> & find_all_threats(std::vector<threat_t> & threats, int begin, int end);
 
+  /*
+   * @brief randomly choose one point (usually used when no threat can be created)
+   * @param[OUT] points possible points on the board
+   * */
+  void find_possible_points(std::vector<point_t> & points);
 private:
   const State & m_state;
 
@@ -145,21 +151,62 @@ private:
    * @return gain of threat
    * */
   int find_threat_at(const State::Position & position, int row, int col, int w, int h, int agent_id, int begin, int end, std::vector<threat_t> & threat_list);
+
+  /*
+   * @brief find possible points around specific row and col
+   * @param[OUT] points points collections for output
+   * @param[IN] visited visited positions
+   * @param[IN] row
+   * @param[IN] col
+   **/
+  void find_possible_points_at(std::vector<point_t> & points, std::vector<std::vector<bool>> & visited, int row, int col);
 };
 
 mcts::Tss::Tss(const mcts::State & state):
   m_state(state)
 {
-#ifdef _DEBUG_TSS
-    for (int i = 0; i < g_threat_types_num; i++) {
-        printf("Pattern [%d] = %s\n", i, g_threat_types[i]);
-    }
-#endif
 }
 
 mcts::Tss::~Tss()
 {
 
+}
+
+void Tss::find_possible_points_at(std::vector<point_t> & points, std::vector<std::vector<bool>> & visited, int row, int col)
+{
+    int w = m_state.board_width;
+    int h = m_state.board_height;
+
+    for (int i = row - RANDOM_SEARCH_RANGE; i < row + RANDOM_SEARCH_RANGE; i++) {
+        for (int j = col - RANDOM_SEARCH_RANGE; j < col + RANDOM_SEARCH_RANGE; j++) {
+            if (in_boundary(i, j, w, h)) {
+                if (m_state.position[i][j] == EMPTY && !visited[i][j]) {
+                    visited[i][j] = true;
+                    points.push_back(point_t{i, j});
+                }
+            }
+        }
+    }
+}
+
+void Tss::find_possible_points(std::vector<Tss::point_t> & points)
+{
+    std::vector<std::vector<bool>> visited(m_state.board_height,
+            std::vector<bool>(m_state.board_width, false));
+
+    for (int i = 0; i < m_state.board_height; i++) {
+        for (int j = 0; j < m_state.board_width; j++) {
+            if (m_state.position[i][j] != EMPTY) {
+                find_possible_points_at(points, visited, i, j);
+            }
+        }
+    }
+
+    if (points.empty()) {
+        points.push_back(point_t{m_state.board_height / 2, m_state.board_width / 2});
+    }
+
+    std::random_shuffle(points.begin(), points.end());
 }
 
 std::vector<Tss::threat_t> & Tss::find_all_threats(std::vector<threat_t> & threats, int begin, int end)
