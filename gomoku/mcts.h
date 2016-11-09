@@ -10,6 +10,7 @@
 
 namespace mcts
 {
+
 class MCTS
 {
 public:
@@ -50,6 +51,7 @@ private:
   /* Debugging */
   bool verbose;
 };
+
 }
 
 #endif // MCTS_H_INCLUDED
