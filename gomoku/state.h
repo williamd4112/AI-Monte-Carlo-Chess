@@ -14,7 +14,8 @@ namespace mcts
 class State
 {
 public:
-  typedef std::vector<std::vector<char> > Position;
+  typedef std::vector<char> Row;
+  typedef std::vector<Row> Position;
 
   int board_height;
   int board_width;
@@ -26,7 +27,7 @@ public:
     board_width(board_width),
     agent_id(agent_id)
   {
-    position = Position(board_height, std::vector<char>(board_width, EMPTY));
+    position = Position(board_height, Row(board_width, EMPTY));
   }
 
   State(int board_height, int board_width, const Position& position,
@@ -77,7 +78,7 @@ public:
     payoffs[BLACK] = 1.0;
     payoffs[WHITE] = 1.0;
 
-    std::vector<std::vector<char>> map = position;
+    Position map = position;
     char color = agent_id;
 
     while(true) {

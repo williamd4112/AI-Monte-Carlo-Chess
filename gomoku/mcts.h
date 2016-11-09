@@ -39,7 +39,7 @@ public:
     TreeNode* best_node = tree.get_best_node();
     best_node->get_state(result_state);
     if (verbose) {
-      std::cout << "duration: " << timer->get_duration() << '\n';
+      std::cout << "duration: " << timer->get_duration() << " ms" << '\n';
       std::cout << "iteration count: " << timer->iteration_count << '\n';
     }
   }

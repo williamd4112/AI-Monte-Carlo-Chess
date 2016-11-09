@@ -1,11 +1,3 @@
-//
-//  simulation_usual.h
-//  Gomoku_v1
-//
-//  Created on 2016/11/9.
-//  Copyright © 2016年 lin. All rights reserved.
-//
-
 #ifndef simulation_usual_h
 #define simulation_usual_h
 
@@ -66,7 +58,7 @@ char who_win(std::vector<std::vector<char>> &map){
         }
     }
     if(is_tie==true) return mcts::EMPTY;
-    
+
     return -1; // Return (-1) if no one wins
 }
 
