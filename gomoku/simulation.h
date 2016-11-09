@@ -6,25 +6,6 @@
 
 #include "constants.h"
 
-void show_map(std::vector<std::vector<char>> &map){
-    std::cout << std::endl << "   ";
-    char c='A';
-    for(int i=0;i<10;i++){
-        std::cout << ' ' << i << ' ';
-    } for(int i=10;i<map.size();i++){
-        std::cout << i << ' ';
-    } std::cout << std::endl;
-    for(int i=0;i<map.size();i++,c++){
-        std::cout << c << i%10 << ' ';
-        for(int j=0;j<map.size();j++){
-            char temp = map[i][j]+'A';
-            if(map[i][j]!=mcts::WHITE && map[i][j]!=mcts::BLACK)  std::cout << ' ' << '+' << ' ';
-            else    std::cout << ' ' << temp << ' ';
-        }
-        std::cout << std::endl;
-    }
-
-}
 bool is_open_end(std::vector<std::vector<char>> &map,int i, int j,bool requirement){
     if(!requirement) return true;
     if(i<0||i>=map.size()) return false;
