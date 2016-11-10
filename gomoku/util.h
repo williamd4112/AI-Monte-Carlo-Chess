@@ -8,18 +8,24 @@ namespace mcts
 
 typedef std::vector<std::vector<char> > Position;
 
-static void print_position(std::ostream& strm,
-                           const Position& position)
+static void print_position(std::ostream& strm, const Position& position)
 {
   size_t width = 0;
   if (!position.empty()) {
     width = position[0].size();
   }
-  strm << "  ";
-  for (size_t i = 0; i < width; ++i) {
-    strm << (char)('A' + i) << " ";
+  if (width >= 10) {
+    strm << "  ";
+    for (size_t i = 0; i < width; ++i) {
+      int ten = (i / 10);
+      if (ten == 0) {
+        strm << "  ";
+      } else {
+        strm << ten << " ";
+      }
+    }
+    strm << '\n';
   }
-  strm << '\n';
   strm << "  ";
   for (size_t i = 0; i < width; ++i) {
     strm << (i % 10) << " ";
@@ -27,7 +33,7 @@ static void print_position(std::ostream& strm,
   strm << '\n';
   int y = 0;
   for (const auto& row : position) {
-    strm << (y % 10) << " ";
+    strm << (char)('A' + y) << " ";
     for (const auto& val: row) {
       if (val == 0) {
         strm << 'O';
@@ -36,9 +42,43 @@ static void print_position(std::ostream& strm,
       } else if (val == 2) {
         strm << '.';
       } else {
-        throw std::runtime_error(std::string("Unknown value ") + val);
+        strm << val;
       }
       strm << " ";
+    }
+    strm << '\n';
+    y += 1;
+  }
+}
+
+static void print_position_num(std::ostream& strm, const Position& position)
+{
+  size_t width = 0;
+  if (!position.empty()) {
+    width = position[0].size();
+  }
+  if (width >= 10) {
+    strm << "  ";
+    for (size_t i = 0; i < width; ++i) {
+      int ten = (i / 10);
+      if (ten == 0) {
+        strm << "  ";
+      } else {
+        strm << ten << " ";
+      }
+    }
+    strm << '\n';
+  }
+  strm << "  ";
+  for (size_t i = 0; i < width; ++i) {
+    strm << (i % 10) << " ";
+  }
+  strm << '\n';
+  int y = 0;
+  for (const auto& row : position) {
+    strm << (char)('A' + y) << " ";
+    for (const auto& val: row) {
+      strm << (char)('0' + val) << " ";
     }
     strm << '\n';
     y += 1;
