@@ -8,8 +8,8 @@
 
 bool is_open_end(std::vector<std::vector<char>> &map,int i, int j,bool requirement){
     if(!requirement) return true;
-    if(i<0||i>=map.size()) return false;
-    if(j<0||j>=map.size()) return false;
+    if(i<0||i>=(int)map.size()) return false;
+    if(j<0||j>=(int)map.size()) return false;
     if(map[i][j]!=mcts::EMPTY) return false;
     return true;
 }
@@ -18,7 +18,7 @@ bool is_row_line(std::vector<std::vector<char>> &map,std::pair<int, int> &this_s
     int num_connect=0;
     // Same row
     int j_min=std::max(0,this_step.second+(-1)*target);
-    int j_max=(map.size()<this_step.second+target)?(int)map.size():this_step.second+target;
+    int j_max=((int)map.size()<this_step.second+target)?(int)map.size():this_step.second+target;
     for(int j = j_min;j<j_max;j++){
 
         if(map[this_step.first][j]==char_match || j==this_step.second)
@@ -38,7 +38,7 @@ bool is_column_line(std::vector<std::vector<char>> &map,std::pair<int, int> &thi
 {
     // Same column
     int i_min=std::max(0,this_step.first+(-1)*target);
-    int i_max=(map.size()<this_step.first+target)?(int)map.size():this_step.first+target;
+    int i_max=((int)map.size()<this_step.first+target)?(int)map.size():this_step.first+target;
     for(int i=i_min,num_connect=0;i<i_max;i++){
         if(map[i][this_step.second]==char_match || i==this_step.first)
             num_connect++;
@@ -57,10 +57,10 @@ bool is_cross1_line(std::vector<std::vector<char>> &map,std::pair<int, int> &thi
 {
     // Cross line
     int i_min=std::max(0,this_step.first+(-1)*target);
-    int i_max=(map.size()<this_step.first+target)?(int)map.size():this_step.first+target;
+    int i_max=((int)map.size()<this_step.first+target)?(int)map.size():this_step.first+target;
 
     int j_min=std::max(0,this_step.second+(-1)*target);
-    int j_max=(map.size()<this_step.second+target)?(int)map.size():this_step.second+target;
+    int j_max=((int)map.size()<this_step.second+target)?(int)map.size():this_step.second+target;
     for(int i=i_min,j=j_min,num_connect=0;j<j_max && i<i_max;i++,j++){
         if(map[i][j]==char_match || (i==this_step.first && j==this_step.second))
             num_connect++;
@@ -76,10 +76,10 @@ bool is_cross1_line(std::vector<std::vector<char>> &map,std::pair<int, int> &thi
 bool is_cross2_line(std::vector<std::vector<char>> &map,std::pair<int, int> &this_step,char char_match,int target,bool open_end)
 {
     int i_min=std::max(0,this_step.first+(-1)*target);
-    int i_max=(map.size()-1<this_step.first+target)?(int)map.size()-1:this_step.first+target;
+    int i_max=((int)map.size()-1<this_step.first+target)?(int)map.size()-1:this_step.first+target;
 
     int j_min=std::max(0,this_step.second+(-1)*target);
-    int j_max=(map.size()-1<this_step.second+target)?(int)map.size()-1:this_step.second+target;
+    int j_max=((int)map.size()-1<this_step.second+target)?(int)map.size()-1:this_step.second+target;
     // Cross line
     for(int j=j_min,i=i_max,num_connect=0;j<j_max && i>=i_min;j++,i--){
         if(map[i][j]==char_match || (i==this_step.first && j==this_step.second))
@@ -125,8 +125,8 @@ std::vector<std::pair<int,int>> next_to_play_each_line(std::vector<std::vector<c
     bool b_next = false;
     bool w_next = false;
     std::vector<std::pair<int, int>> next_position,second_next_position;
-    for(int i=0;i<map.size();i++){
-        for(int j=0 ; j<map.size(); j++,b_next = false,w_next = false){
+    for(int i=0;i<(int)map.size();i++){
+        for(int j=0 ; j<(int)map.size(); j++,b_next = false,w_next = false){
             std::pair<int,int> temp_pair = std::make_pair(i,j);
             // if occupied, then continue
             if(map[i][j]==mcts::BLACK||map[i][j]==mcts::WHITE|| map[i][j]==-1) continue;
