@@ -9,6 +9,8 @@
 #include "constants.h"
 #include "state.h"
 #include "pattern.h"
+#include "board.h"
+#include "util.h"
 #include "debug.h"
 
 #define CRITICAL_THREAT_TYPE_ID 0
@@ -17,6 +19,8 @@
 #define END 1
 #define DR 0
 #define DC 1
+#define MAX_HOP 2
+#define GAIN_CONNECTIVITY_THRESHOLD 2
 #define THREAT_LEVEL_1 0
 #define THREAT_LEVEL_2 1
 #define THREAT_LEVEL_3 2
@@ -123,6 +127,8 @@ public:
   Tss(const State & state);
   ~Tss();
 
+  void find_all_threats_sequence(std::vector<threat_t> & threats, int begin, int end);
+
   /*
    * @brief test set chess on each empty position to
    *        find all possible threats in the board, sorted by threat gain
@@ -131,7 +137,7 @@ public:
    * @param[IN] end end level
    * @return threat list
    * */
-  std::vector<threat_t> & find_all_threats(std::vector<threat_t> & threats, int begin, int end);
+  std::vector<threat_t> & find_all_threats(const State::Position & state_position, std::vector<threat_t> & threats, int begin, int end);
 
   /*
    * @brief randomly choose one point (usually used when no threat can be created)
@@ -155,6 +161,11 @@ private:
    * @return gain of threat
    * */
   int find_threat_at(const State::Position & position, int row, int col, int w, int h, int agent_id, int begin, int end, std::vector<threat_t> & threat_list);
+
+  int find_threat_at(
+          const State::Position & position,
+          const board_t & board,
+          int row, int col, int w, int h, int agent_id, std::vector<threat_t> & threat_list);
 
   /*
    * @brief find possible points around specific row and col
@@ -213,7 +224,13 @@ void Tss::find_possible_points(std::vector<Tss::point_t> & points)
     std::random_shuffle(points.begin(), points.end());
 }
 
-std::vector<Tss::threat_t> & Tss::find_all_threats(std::vector<threat_t> & threats, int begin, int end)
+
+void Tss::find_all_threats_sequence(std::vector<Tss::point_t> & threat_moves, int begin, int end)
+{
+
+}
+
+std::vector<Tss::threat_t> & Tss::find_all_threats(const State::Position & state_position, std::vector<threat_t> & threats, int begin, int end)
 {
   /* No level 1, for now */
   assert(begin != THREAT_LEVEL_1 && end != THREAT_LEVEL_1);
@@ -221,20 +238,31 @@ std::vector<Tss::threat_t> & Tss::find_all_threats(std::vector<threat_t> & threa
   int w = m_state.board_width;
   int h = m_state.board_height;
 
-  State::Position position = m_state.position;
+  State::Position position = state_position;
 
+#if 1
   for (int i = 0; i < h; i++) {
     for (int j = 0; j < w; j++) {
-      if (m_state.position[i][j] == mcts::EMPTY) {
-
+      if (position[i][j] == mcts::EMPTY) {
         position[i][j] = m_state.agent_id;
-        int gain = find_threat_at(position, i, j, w, h, m_state.agent_id, begin, end, threats);
+        find_threat_at(position, i, j, w, h, m_state.agent_id, begin, end, threats);
         position[i][j] = mcts::EMPTY;
       }
     }
   }
-  std::sort(threats.begin(), threats.end(), std::greater<threat_t>());
+#else
+  board_t board(h, std::vector<board_node_t>(w));
+  find_connectivities(board, position, m_state.agent_id);
 
+  for (int i = 0; i < h; i++) {
+      for (int j = 0; j < w; j++) {
+        if (position[i][j] == EMPTY) {
+            find_threat_at(position, board, i, j, w, h, m_state.agent_id, threats);
+        }
+      }
+  }
+#endif
+  std::sort(threats.begin(), threats.end(), std::greater<threat_t>());
   return threats;
 }
 
@@ -242,7 +270,6 @@ int Tss::find_threat_at(const State::Position & position,
         int row, int col, int w, int h, int agent_id, int begin, int end, std::vector<threat_t> & threat_list)
 {
   threat_t threat = threat_t{ point_t{row, col}, 0 };
-
   int begin_pattern_id = g_threat_levels[begin][BEGIN];
   int end_pattern_id = g_threat_levels[end][END];
 
@@ -252,20 +279,12 @@ int Tss::find_threat_at(const State::Position & position,
     DEBUG_TSS("Try pattern %d (%s)\n", k, g_threat_types[k]);
 
     for (int d = 0; d < 4; d++) {
-      bool result = match_pattern(position,
-        row, col, w, h, dirs[d][DR], dirs[d][DC],
+      bool result = match_pattern(position, row, col, w, h, dirs[d][DR], dirs[d][DC],
         g_threat_types[k], agent_id);
 
       if (result) {
         DEBUG_TSS("Match pattern %d (%s)\n", k, g_threat_types[k]);
         threat.gain++;
-
-        /* Crtical action, one step winning (add gain again, since one step win should have higher priority than double threat) */
-        if (k == CRITICAL_THREAT_TYPE_ID) {
-            threat.gain = CRITICAL_THREAT_GAIN;
-            threat_list.push_back(threat);
-            return threat.gain;
-        }
       }
     }
   }
@@ -275,6 +294,57 @@ int Tss::find_threat_at(const State::Position & position,
   }
 
   return threat.gain;
+}
+
+int Tss::find_threat_at(
+          const State::Position & position,
+          const board_t & board,
+          int row, int col, int w, int h, int agent_id, std::vector<threat_t> & threat_list)
+{
+    threat_t threat = threat_t { point_t {row, col}, 0 };
+    for (int k = 0; k < NUM_DIR; k++) {
+        int connectivity = 1;
+        int dr = dirs[k][DR];
+        int dc = dirs[k][DC];
+        int pr = row + dr;
+        int pc = col + dc;
+        int nr = row - dr;
+        int nc = col - dc;
+
+        if (in_boundary(pr, pc, w, h)) {
+            if (position[pr][pc] == EMPTY) {
+                pr += dr;
+                pc += dc;
+            }
+
+            if (in_boundary(pr, pc, w, h) && position[pr][pc] == agent_id) {
+                connectivity += board[pr][pc].connectivity[k];
+                DEBUG_TSS("Connect %d, %d in k %d dir\n", pr, pc, k);
+            }
+        }
+
+        if (in_boundary(nr, nc, w, h)) {
+            if (position[nr][nc] == EMPTY) {
+                nr += dr;
+                nc += dc;
+            }
+
+            if (in_boundary(nr, nc, w, h) && position[nr][nc] == agent_id) {
+                connectivity += board[nr][nc].connectivity[k];
+                DEBUG_TSS("Connect %d, %d in k %d dir\n", nr, nc, k);
+            }
+        }
+
+       if (connectivity >= GAIN_CONNECTIVITY_THRESHOLD) {
+            threat.gain++;
+        }
+    }
+
+    if (threat.gain) {
+        threat_list.push_back(threat);
+    }
+
+    return threat.gain;
 }
 
 }

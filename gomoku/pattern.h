@@ -25,8 +25,13 @@ bool match_pattern(
 
 bool match_pattern_position(char type, int chess, int agent_id)
 {
+  int opponent_id = agent_id ^ (1 << 0);
+
   if (type == SELF) {
     return chess == agent_id;
+  }
+  else if (type == FORBBIDEN) {
+    return chess == opponent_id;
   }
   else if (type == BLANK) {
     return chess == mcts::EMPTY;

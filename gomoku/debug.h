@@ -15,5 +15,11 @@
 #define DEBUG_TSS(args...)
 #endif
 
+#ifdef _DEBUG_BOARD
+#define DEBUG_BOARD(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
+#else
+#define DEBUG_BOARD(args...)
+#endif
+
 
 #endif
