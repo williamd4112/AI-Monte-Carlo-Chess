@@ -18,7 +18,6 @@
 #endif
 
 #define CRITICAL_THREAT_TYPE_ID 0
-#define WINNING_GAIN 0xff
 #define BEGIN 0
 #define END 1
 #define DR 0
@@ -122,10 +121,12 @@ public:
     point_t point;
     std::vector<threat_t> children;
     bool winning;
+    bool final_winning;
 
     threat_t(point_t _point, bool _winning):
       point(_point),
-      winning(_winning)
+      winning(_winning),
+      final_winning(false)
     {
 
     }
@@ -133,7 +134,8 @@ public:
     threat_t(const threat_t & copy):
       point(copy.point),
       children(copy.children),
-      winning(copy.winning)
+      winning(copy.winning),
+      final_winning(copy.final_winning)
     {
 
     }
@@ -142,6 +144,7 @@ public:
     {
       print_r(*this, 0);
     }
+
   private:
     void print_r(threat_t & t, int d)
     {
@@ -160,7 +163,7 @@ public:
 private:
   const State & m_state;
 
-  int find_all_threats_r(State::Position & state_position, std::vector<threat_t> & threats, int begin, int end, int depth, int max_depth, const threat_t & dependent_threat);
+  bool find_all_threats_r(State::Position & state_position, std::vector<threat_t> & threats, int begin, int end, int depth, int max_depth, threat_t & dependent_threat);
 
   std::pair<int, int> is_gain_square(const threat_t & threat, const State::Position & position, int begin, int end, int dir, int agent_id);
 
@@ -250,24 +253,30 @@ void Tss::unset_cost_squares(State::Position & position, const char * pattern, i
   }
 }
 
-int Tss::find_all_threats_r(
+bool Tss::find_all_threats_r(
     State::Position & position,
 
-    std::vector<threat_t> & threats, int begin, int end, int depth, int max_depth, const threat_t & dependent_threat)
+    std::vector<threat_t> & threats, int begin, int end, int depth, int max_depth, threat_t & dependent_threat)
 {
   /* No level 1, for now */
   assert(begin != THREAT_LEVEL_1 && end != THREAT_LEVEL_1);
 
+  if (depth >= max_depth) {
+    return 0;
+  }
+
   int w = m_state.board_width;
   int h = m_state.board_height;
   int opponent_id = m_state.agent_id ^ (1 << 0);
+  bool final_result = false;
+
   const Tss::point_t & dependent_square = dependent_threat.point;
 
   DEBUG_FAST_TSS("Start from state\n");
   DEBUG_FAST_TSS_POSITION(position);
 
-  for (int i = 0; i < h; i++) {
-    for (int j = 0; j < w; j++) {
+  for (int i = 0; i < h && !final_result; i++) {
+    for (int j = 0; j < w && !final_result; j++) {
       DEBUG_FAST_TSS("Move (%d, %d)[0%x]; Depth = %d\n", i, j, position[i][j], depth);
       if (position[i][j] == mcts::EMPTY) {
         /* Match only one direction */
@@ -306,16 +315,17 @@ int Tss::find_all_threats_r(
               set_cost_squares(position, pattern, pattern_len, opponent_id, begin_row, begin_col, end_row, end_col, dr, dc);
               DEBUG_FAST_TSS_POSITION(position);
 
-              LOG_FAST_TSS("Gain square (%d, %d) [depth = %d]\n", i, j, depth);
+              LOG_FAST_TSS("Gain square (%d, %d) [depth = %d]; Dependent (%d, %d)\n", i, j, depth, dependent_threat.point.i, dependent_threat.point.j);
               LOG_FAST_TSS_POSITION(position);
 
               /* Cut when winning */
               if (match.first != 0) {
-                find_all_threats_r(position, threat.children, begin, end, depth + 1, max_depth, threat);
+                final_result = threat.final_winning = find_all_threats_r(position, threat.children, begin, end, depth + 1, max_depth, threat);
               }
               else {
-                LOG_FAST_TSS("Winning sequence found.\n");
-                threat.winning = true;
+                threat.winning = threat.final_winning = true;
+                final_result = true;
+                LOG_FAST_TSS("Winning sequence found (result = %d)\n", final_result);
               }
 
               unset_cost_squares(position, pattern, pattern_len, opponent_id, begin_row, begin_col, end_row, end_col, dr, dc);
@@ -330,11 +340,12 @@ int Tss::find_all_threats_r(
         DEBUG_FAST_TSS("\tUnset (%d, %d)[0%x]; Depth = %d\n", i, j, position[i][j], depth);
         DEBUG_FAST_TSS_POSITION(position);
       }
-
     }
   }
 
-  return threats.size();
+  LOG_FAST_TSS("\tResult (depth = %d) = %d\n", depth, final_result);
+
+  return final_result;
 }
 
 

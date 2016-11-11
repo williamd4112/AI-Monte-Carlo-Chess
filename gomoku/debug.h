@@ -2,6 +2,7 @@
 #define _DEBUG_H_
 
 #include <cstdio>
+#include <cassert>
 #include "util.h"
 
 #ifdef _DEBUG
@@ -21,7 +22,7 @@
 #define DEBUG_FAST_TSS_POSITION(pos) print_position(std::cout, (pos));
 #else
 #define DEBUG_FAST_TSS(args...)
-#define DEBUG_FAST_TSS_POSITION(pos) 
+#define DEBUG_FAST_TSS_POSITION(pos)
 #endif
 
 #ifdef _LOG_FAST_TSS
@@ -29,7 +30,7 @@
 #define LOG_FAST_TSS_POSITION(pos) print_position(std::cout, (pos));
 #else
 #define LOG_FAST_TSS(args...)
-#define LOG_FAST_TSS_POSITION(pos) 
+#define LOG_FAST_TSS_POSITION(pos)
 #endif
 
 #ifdef _DEBUG_BOARD
@@ -44,6 +45,11 @@
 #define DEBUG_PATTERN(args...)
 #endif
 
+#ifdef _DEBUG_POLICY
+#define DEBUG_POLICY(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
+#else
+#define DEBUG_POLICY(args...)
+#endif
 
 
 #endif

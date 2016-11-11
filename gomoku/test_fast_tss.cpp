@@ -23,6 +23,9 @@ int main()
   Tss tss(state);
   std::vector<Tss::threat_t> threats;
   tss.find_all_threats(state.position, threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 255);
+  for (auto t : threats) {
+    printf("(%d, %d, %d, %d)\n",t.point.i,t.point.j,t.winning,t.final_winning);
+  }
 
   return 0;
 }

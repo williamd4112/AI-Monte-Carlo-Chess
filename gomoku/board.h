@@ -26,7 +26,6 @@ const int BOARD_DIRS[4][2] = {
 struct board_node_t
 {
   bool visited[NUM_DIR];
-  int open[NUM_DIR];
   int connectivity[NUM_DIR];
 
   board_node_t():
@@ -76,7 +75,6 @@ void find_connectivity_at(board_t & board, const board_map_t & map, int agent_id
 void find_connectivities(board_t & board, const board_map_t & map, int agent_id)
 {
   for (int k = 0; k < NUM_DIR; k++) {
-          find_connectivity_at(board, map, agent_id, i, j, k, map.size[i](), map.size());
       for (int j = 0; j < map[i].size(); j++) {
         if (!board[i][j].visited[k]) {
           find_connectivity_at(board, map, agent_id, i, j, k, map[i].size(), map.size());
