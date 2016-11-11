@@ -275,8 +275,8 @@ bool Tss::find_all_threats_r(
   DEBUG_FAST_TSS("Start from state\n");
   DEBUG_FAST_TSS_POSITION(position);
 
-  for (int i = 0; i < h && !final_result; i++) {
-    for (int j = 0; j < w && !final_result; j++) {
+  for (int i = 0; i < h; i++) {
+    for (int j = 0; j < w; j++) {
       DEBUG_FAST_TSS("Move (%d, %d)[0%x]; Depth = %d\n", i, j, position[i][j], depth);
       if (position[i][j] == mcts::EMPTY) {
         /* Match only one direction */
@@ -320,7 +320,7 @@ bool Tss::find_all_threats_r(
 
               /* Cut when winning */
               if (match.first != 0) {
-                final_result = threat.final_winning = find_all_threats_r(position, threat.children, begin, end, depth + 1, max_depth, threat);
+                final_result = threat.final_winning = final_result | find_all_threats_r(position, threat.children, begin, end, depth + 1, max_depth, threat);
               }
               else {
                 threat.winning = threat.final_winning = true;
