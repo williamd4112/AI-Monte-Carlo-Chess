@@ -279,10 +279,10 @@ int Tss::find_threat_at(const State::Position & position,
     DEBUG_TSS("Try pattern %d (%s)\n", k, g_threat_types[k]);
 
     for (int d = 0; d < 4; d++) {
-      bool result = match_pattern(position, row, col, w, h, dirs[d][DR], dirs[d][DC],
+      int result = match_pattern(position, row, col, w, h, dirs[d][DR], dirs[d][DC],
         g_threat_types[k], agent_id);
 
-      if (result) {
+      if (result != MISMATCH) {
         DEBUG_TSS("Match pattern %d (%s)\n", k, g_threat_types[k]);
         threat.gain++;
       }
