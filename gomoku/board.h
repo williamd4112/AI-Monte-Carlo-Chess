@@ -76,7 +76,7 @@ void find_connectivity_at(board_t & board, const board_map_t & map, int agent_id
 void find_connectivities(board_t & board, const board_map_t & map, int agent_id)
 {
   for (int k = 0; k < NUM_DIR; k++) {
-    for (int i = 0; i < map.size(); i++) {
+          find_connectivity_at(board, map, agent_id, i, j, k, map.size[i](), map.size());
       for (int j = 0; j < map[i].size(); j++) {
         if (!board[i][j].visited[k]) {
           find_connectivity_at(board, map, agent_id, i, j, k, map[i].size(), map.size());
