@@ -10,7 +10,7 @@ using namespace mcts;
 
 void expand(const State & s, int depth)
 {
-  if (depth >= 3) return;
+  if (depth > 0) return;
   cout << "Depth " << depth << " : Agent " << (int)s.agent_id << endl;
   cout << s << endl;
   std::vector<State> next_states;

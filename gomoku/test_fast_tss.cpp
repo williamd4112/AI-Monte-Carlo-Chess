@@ -3,6 +3,7 @@
 #include "constants.h"
 #include <iostream>
 #include <queue>
+#include <algorithm>
 
 using namespace std;
 using namespace mcts;
@@ -23,8 +24,9 @@ int main()
   Tss tss(state);
   std::vector<Tss::threat_t> threats;
   tss.find_all_threats(state.position, threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 255);
+  sort(threats.begin(), threats.end(), greater<Tss::threat_t>());
   for (auto t : threats) {
-    printf("(%d, %d, %d, %d)\n",t.point.i,t.point.j,t.winning,t.final_winning);
+    printf("(%d, %d, %d, %d, %d)\n",t.point.i,t.point.j,t.level,t.winning,t.final_winning);
   }
 
   return 0;

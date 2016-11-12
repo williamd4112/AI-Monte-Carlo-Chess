@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdlib>
+#include <cmath>
+#include <climits>
 
 #include "constants.h"
 #include "state.h"
@@ -90,10 +92,24 @@ const static int dirs[4][2] = {
     { -1, 1 }
 };
 
+static int get_threat_level(int i)
+{
+  for (int level = THREAT_LEVEL_5; level >= THREAT_LEVEL_1; level--) {
+    if (i >= g_threat_levels[level][1] && i <= g_threat_levels[level][0]) {
+      return level;
+    }
+  }
+
+  /* Should not reach here */
+  assert(false);
+  return 0;
+}
+
 /*
  * Construct with a state.
  * After construction, we can get all threats by calling get_threats()
  */
+
 class Tss
 {
 public:
@@ -122,11 +138,13 @@ public:
     std::vector<threat_t> children;
     bool winning;
     bool final_winning;
+    int min_winning_depth;
 
     threat_t(point_t _point, bool _winning):
       point(_point),
       winning(_winning),
-      final_winning(false)
+      final_winning(false),
+      min_winning_depth(INT_MAX)
     {
 
     }
@@ -135,7 +153,8 @@ public:
       point(copy.point),
       children(copy.children),
       winning(copy.winning),
-      final_winning(copy.final_winning)
+      final_winning(copy.final_winning),
+      min_winning_depth(copy.min_winning_depth)
     {
 
     }
@@ -145,11 +164,21 @@ public:
       print_r(*this, 0);
     }
 
+    friend bool operator > (const threat_t & a, const threat_t & b)
+    {
+      if (a.final_winning && !b.final_winning)
+        return true;
+      else if (!a.final_winning && b.final_winning)
+        return false;
+      else
+        return a.min_winning_depth < b.min_winning_depth;
+    }
+
   private:
     void print_r(threat_t & t, int d)
     {
       for (int i = 0; i < d; i++) putchar('-');
-      printf("Gain(%d, %d)\n", t.point.i, t.point.j);
+      printf("Gain(%d, %d): [%d, %d]\n", t.point.i, t.point.j, t.winning, t.final_winning);
       for (threat_t & child : t.children) {
         print_r(child, d + 1);
       }
@@ -163,7 +192,7 @@ public:
 private:
   const State & m_state;
 
-  bool find_all_threats_r(State::Position & state_position, std::vector<threat_t> & threats, int begin, int end, int depth, int max_depth, threat_t & dependent_threat);
+  std::pair<bool, int> find_all_threats_r(State::Position & state_position, std::vector<threat_t> & threats, int begin, int end, int depth, int max_depth, threat_t & dependent_threat);
 
   std::pair<int, int> is_gain_square(const threat_t & threat, const State::Position & position, int begin, int end, int dir, int agent_id);
 
@@ -253,7 +282,7 @@ void Tss::unset_cost_squares(State::Position & position, const char * pattern, i
   }
 }
 
-bool Tss::find_all_threats_r(
+std::pair<bool, int> Tss::find_all_threats_r(
     State::Position & position,
 
     std::vector<threat_t> & threats, int begin, int end, int depth, int max_depth, threat_t & dependent_threat)
@@ -261,14 +290,19 @@ bool Tss::find_all_threats_r(
   /* No level 1, for now */
   assert(begin != THREAT_LEVEL_1 && end != THREAT_LEVEL_1);
 
-  if (depth >= max_depth) {
-    return 0;
-  }
 
   int w = m_state.board_width;
   int h = m_state.board_height;
   int opponent_id = m_state.agent_id ^ (1 << 0);
-  bool final_result = false;
+  std::pair<bool, int> res;
+
+  /* Initialize no winning, invalid depth */
+  res.first = false;
+  res.second = INT_MAX;
+
+  if (depth >= max_depth) {
+    return res;
+  }
 
   const Tss::point_t & dependent_square = dependent_threat.point;
 
@@ -279,18 +313,13 @@ bool Tss::find_all_threats_r(
     for (int j = 0; j < w; j++) {
       DEBUG_FAST_TSS("Move (%d, %d)[0%x]; Depth = %d\n", i, j, position[i][j], depth);
       if (position[i][j] == mcts::EMPTY) {
-        /* Match only one direction */
         threat_t threat(point_t{i, j}, false);
 
-        DEBUG_FAST_TSS("\tSet (%d, %d)[0%x]; Depth = %d\n", i, j, position[i][j], depth);
         position[i][j] = m_state.agent_id;
-        DEBUG_FAST_TSS_POSITION(position);
-
         for (int dir = 0; dir < 4; dir++) {
           int dr = dirs[dir][DR];
           int dc = dirs[dir][DC];
 
-          /* Is gain square */
           std::pair<int, int> match = is_gain_square(threat, position, begin, end, dir, m_state.agent_id);
           if (match.second != MISMATCH) {
             const char * pattern = g_threat_types[match.first];
@@ -307,116 +336,47 @@ bool Tss::find_all_threats_r(
                 pattern, match_pos, pattern_len, dependent_square);
             }
 
-            /* Expand */
             if (dependency) {
-              DEBUG_FAST_TSS("Match pattern %s (%d); Dependency = %d\n", pattern, match.second, dependency);
+              DEBUG_FAST_TSS("Match pattern %s (%d)\n", pattern, match.second);
 
-              DEBUG_FAST_TSS("Set cost square\n");
               set_cost_squares(position, pattern, pattern_len, opponent_id, begin_row, begin_col, end_row, end_col, dr, dc);
-              DEBUG_FAST_TSS_POSITION(position);
 
               LOG_FAST_TSS("Gain square (%d, %d) [depth = %d]; Dependent (%d, %d)\n", i, j, depth, dependent_threat.point.i, dependent_threat.point.j);
               LOG_FAST_TSS_POSITION(position);
 
               /* Cut when winning */
               if (match.first != 0) {
-                final_result = threat.final_winning = final_result | find_all_threats_r(position, threat.children, begin, end, depth + 1, max_depth, threat);
+                std::pair<int, int> child_res = find_all_threats_r(position, threat.children, begin, end, depth + 1, max_depth, threat);
+                res.first |= child_res.first;
+                res.second = std::min(res.second, child_res.second);
+
+                threat.final_winning |= child_res.first;
+                threat.min_winning_depth = child_res.second;
               }
               else {
+                res.first = true;
+                res.second = depth;
                 threat.winning = threat.final_winning = true;
-                final_result = true;
-                LOG_FAST_TSS("Winning sequence found (result = %d)\n", final_result);
-              }
+                threat.min_winning_depth = depth;
 
+                LOG_FAST_TSS("Winning sequence found [depth = %d]\n", depth);
+              }
               unset_cost_squares(position, pattern, pattern_len, opponent_id, begin_row, begin_col, end_row, end_col, dr, dc);
-              DEBUG_FAST_TSS("Unset cost square\n");
-              DEBUG_FAST_TSS_POSITION(position);
               threats.push_back(threat);
               break;
             }
           }
         }
         position[i][j] = EMPTY;
-        DEBUG_FAST_TSS("\tUnset (%d, %d)[0%x]; Depth = %d\n", i, j, position[i][j], depth);
-        DEBUG_FAST_TSS_POSITION(position);
       }
     }
   }
 
-  LOG_FAST_TSS("\tResult (depth = %d) = %d\n", depth, final_result);
+  LOG_FAST_TSS("\tResult (depth = %d) = [%d, %d]\n", depth, res.first, res.second);
 
-  return final_result;
+  return res;
 }
 
-
-#if 0
-int Tss::find_threat_at(State::Position & position,
-        int row, int col, int w, int h, int agent_id, int begin, int end, std::vector<threat_t> & threat_list, int depth, int max_depth)
-{
-  threat_t threat = threat_t{ point_t{row, col}, 0 };
-
-  int begin_pattern_id = g_threat_levels[begin][BEGIN];
-  int end_pattern_id = g_threat_levels[end][END];
-
-  DEBUG_TSS("From %d to %d\n", end_pattern_id, begin_pattern_id);
-
-  for (int k = end_pattern_id; k <= begin_pattern_id; k++) {
-    DEBUG_TSS("Try pattern %d (%s)\n", k, g_threat_types[k]);
-
-    for (int d = 0; d < 4; d++) {
-      int pattern_len = strlen(g_threat_types[k]);
-      int result = match_pattern(position, row, col, w, h, dirs[d][DR], dirs[d][DC],
-        g_threat_types[k], agent_id);
-
-      if (result != MISMATCH) {
-        DEBUG_TSS("Match pattern %d (%s)\n", k, g_threat_types[k]);
-        threat.gain++;
-        if (k == 0) {
-            threat.gain = WINNING_GAIN;
-            threat_list.push_back(threat);
-            return threat.gain;
-        }
-#ifdef DFS_TSS
-        /* Fill cost square */
-        int opponent_id = agent_id ^ (1 << 0);
-        int dr = dirs[d][DR];
-        int dc = dirs[d][DC];
-        int begin_row = row - dirs[d][DR] * result,
-                begin_col = col - dirs[d][DC] * result,
-                end_row = row + dirs[d][DR] * (pattern_len - result - 1),
-                end_col = row + dirs[d][DC] * (pattern_len - result - 1);
-        for (int i = 0, r = begin_row, c = begin_col; i < pattern_len; i++, r += dr, c += dc) {
-            if (g_threat_types[k][i] == BLANK) {
-                position[r][c] = opponent_id;
-            }
-        }
-        print_position(std::cout, position);
-#ifdef _UNIX_SLEEP
-        sleep(6);
-#endif
-        find_all_threats(position, threat.children, begin, end);
-#if 1
-        for (int i = 0, r = begin_row, c = begin_col; i < pattern_len; i++, r += dr, c += dc) {
-            if (g_threat_types[k][i] == BLANK) {
-                position[r][c] = EMPTY;
-            }
-        }
-#endif
-
-#endif
-      }
-    }
-  }
-
-  if (threat.gain) {
-    threat_list.push_back(threat);
-  }
-
-  return threat.gain;
 }
-#endif
-}
-
-
 
 #endif
