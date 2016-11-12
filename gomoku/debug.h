@@ -51,5 +51,12 @@
 #define DEBUG_POLICY(args...)
 #endif
 
+#ifdef _DEBUG_SIM
+#define DEBUG_SIM(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
+#define DEBUG_SIM_STATE(s) (std::cout << (s) << std::endl)
+#else
+#define DEBUG_SIM(args...)
+#define DEBUG_SIM_STATE(s)
+#endif
 
 #endif

@@ -30,40 +30,15 @@ pair<int, int> count(const State & s, int w, int h)
     return res;
 }
 
-void expand(const State & s, int depth, int max_depth)
-{
-  if (depth >= max_depth) return;
-  cout << "Depth " << depth << " : Agent " << (int)s.agent_id << endl;
-  cout << s << endl;
-  int winner = EMPTY;
-  if ((winner = util_check_win(s.position, s.board_width, s.board_height)) != EMPTY) {
-      cout << "Agent " << winner << " win !" << endl;
-      return;
-  }
-  std::vector<State> next_states;
-  int res = policy_aggresive(s, next_states);
-  if (res == POLICY_FAIL) {
-      cout << "Tie !!" << endl;
-      auto counting = count(s, s.board_width, s.board_height);
-      printf("Black %d, White %d\n", counting.first, counting.second);
-      return;
-  }
-
-#if 0
-  for (State & next : next_states) {
-    expand(next, depth + 1, max_depth);
-  }
-#else
-  expand(next_states[rand() % next_states.size()], depth + 1, max_depth);
-#endif
-}
-
 State run(const State & state, bool is_cpu, bool * is_over)
 {
     int winner = EMPTY;
     cout << state << endl;
-    if ((winner = util_check_win(state.position, state.board_width, state.board_height)) != EMPTY) {
-        cout << "Agent " << winner << " win !" << endl;
+    if ((winner = util_check_win(state.position, state.board_width, state.board_height)) != NOT_END) {
+        if (winnter == EMPTY)
+          cout << "Tie" << endl;
+        else
+          cout << "Agent " << winner << " win !" << endl;
         *is_over = true;
         return state;
     }

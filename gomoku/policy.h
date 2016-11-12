@@ -16,7 +16,7 @@
 #define OPPONENT_TSS_MAX_DEPTH 255
 #define POLICY_SUCCESS 0x1
 #define POLICY_FAIL 0x0
-#define RANDOM_SEARCH_RANGE 6
+#define RANDOM_SEARCH_RANGE 3
 
 /*
  * policy.h
@@ -139,7 +139,7 @@ namespace mcts {
     return result;
   }
 
-  int policy_aggresive(const State & opponent_state, std::vector<State> & next_states)
+  int policy_aggresive(const State & opponent_state, std::vector<State> & next_states, int max_depth=DEFAULT_TSS_MAX_DEPTH)
   {
     int res = POLICY_FAIL;
 
@@ -150,7 +150,7 @@ namespace mcts {
     std::vector<Tss::threat_t> opponent_threats;
     std::vector<Tss::threat_t> opponent_winning_seq;
     Tss opponent_tss(opponent_state);
-    opponent_tss.find_all_threats(opponent_state.position, opponent_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, OPPONENT_TSS_MAX_DEPTH);
+    opponent_tss.find_all_threats(opponent_state.position, opponent_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, max_depth);
     std::sort(opponent_threats.begin(), opponent_threats.end(), std::greater<Tss::threat_t>());
     DEBUG_POLICY("Opponent winning seq\n");
     find_winning_sequence(opponent_threats, opponent_winning_seq);
@@ -159,7 +159,7 @@ namespace mcts {
     std::vector<Tss::threat_t> self_threats;
     std::vector<Tss::threat_t> self_winning_seq;
     Tss self_tss(self_state);
-    self_tss.find_all_threats(self_state.position, self_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, DEFAULT_TSS_MAX_DEPTH);
+    self_tss.find_all_threats(self_state.position, self_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, max_depth);
     std::sort(self_threats.begin(), self_threats.end(), std::greater<Tss::threat_t>());
     DEBUG_POLICY("Self winning seq\n");
     find_winning_sequence(self_threats, self_winning_seq);

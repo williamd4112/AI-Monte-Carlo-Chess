@@ -9,6 +9,7 @@ namespace mcts
 {
 
 #define WINNING_CHAIN_NUM 5
+#define NOT_END -1
 
 typedef std::vector<std::vector<char> > Position;
 
@@ -28,6 +29,13 @@ int util_check_chain(const Position & position, int w, int h, int row, int col, 
     return k;
 }
 
+/*
+ * @brief check winning status
+ * @return BLACK black win
+ *         WHITE white win
+ *         EMPTY tie
+ *         NOT_END not end
+ * */
 int util_check_win(const Position & position, int w, int h)
 {
     const static int dirs[][2] = {
@@ -38,6 +46,8 @@ int util_check_win(const Position & position, int w, int h)
     };
 
     const static int dir_num = 4;
+
+    bool is_tie = true;
 
     for (int k = 0; k < dir_num; k++) {
         int skip = 0;
@@ -51,6 +61,7 @@ int util_check_win(const Position & position, int w, int h)
 
                 int chess = position[i][j];
                 if (position[i][j] != EMPTY) {
+                    is_tie = false;
                     int len = util_check_chain(position, h, w, i, j, dr, dc, chess);
                     if (len == WINNING_CHAIN_NUM)
                         return chess;
@@ -61,7 +72,7 @@ int util_check_win(const Position & position, int w, int h)
         }
     }
 
-    return EMPTY;
+    return (is_tie) ? EMPTY : NOT_END;
 }
 
 
