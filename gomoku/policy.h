@@ -69,32 +69,45 @@ namespace mcts {
   int policy_attack_middle(const State & state, std::vector<State> & next_states)
   {
     DEBUG_POLICY("Policy middle (%d)\n", state.agent_id);
-    State new_state(state);
-    new_state.position[state.board_height / 2][state.board_width / 2] = state.agent_id;
-    next_states.push_back(new_state);
-    return POLICY_SUCCESS;
+    int mr = state.board_height / 2;
+    int mc = state.board_width / 2;
+    if (state.position[mr][mc] == EMPTY){
+        State new_state(state);
+        new_state.position[mr][mc] = state.agent_id;
+        next_states.push_back(new_state);
+    }
+    return next_states.empty() ? POLICY_FAIL : POLICY_SUCCESS;
   }
 
   int policy_attack_random(const State & state, std::vector<State> & next_states)
   {
     /// TODO : implement random policy
-    DEBUG_POLICY("Policy random (%d)\n", state.agent_id);
-
+    int res = POLICY_FAIL;
+    int w = state.board_width;
+    int h = state.board_height;
     for (int i = 0 ; i < state.board_height; i++) {
       for (int j = 0; j < state.board_width; j++) {
         if (state.position[i][j] != EMPTY) {
           for (int r = i - RANDOM_SEARCH_RANGE; r < i + RANDOM_SEARCH_RANGE; r++) {
             for (int c = j - RANDOM_SEARCH_RANGE; c < j + RANDOM_SEARCH_RANGE; c++) {
-              State new_state(state);
-              new_state.position[r][c] = state.agent_id;
-              next_states.push_back(new_state);
+              if (r < 0 || r >= h || c < 0 || c >= w)
+                  continue;
+              if (state.position[r][c] == EMPTY) {
+                State new_state(state);
+                new_state.position[r][c] = state.agent_id;
+                next_states.push_back(new_state);
+                res = POLICY_SUCCESS;
+              }
             }
           }
         }
       }
     }
-    std::random_shuffle(next_states.begin(), next_states.end());
-    return next_states.empty() ? POLICY_FAIL : POLICY_SUCCESS;
+    if (!next_states.empty()) {
+        std::random_shuffle(next_states.begin(), next_states.end());
+    }
+    DEBUG_POLICY("Policy random (%d) = %d\n", state.agent_id, res);
+    return res;
   }
 
   int policy_attack_approach(const State & state, std::vector<State> & next_states)
@@ -110,7 +123,7 @@ namespace mcts {
       expand_threats_to_states(approaches, state, next_states);
       result = POLICY_SUCCESS;
     }
-
+    std::random_shuffle(next_states.begin(), next_states.end());
     return result;
   }
 
@@ -120,14 +133,6 @@ namespace mcts {
     if (!threats.empty()) {
         expand_threats_to_states(threats, state, next_states);
         result = POLICY_SUCCESS;
-    }
-    else {
-      DEBUG_POLICY("No threats, approach\n");
-      if ((result = policy_attack_approach(state, next_states) != POLICY_SUCCESS)) {
-        if ((result = policy_attack_random(state, next_states) != POLICY_SUCCESS)) {
-          result = policy_attack_middle(state, next_states);
-        }
-      }
     }
     return result;
   }
@@ -161,19 +166,41 @@ namespace mcts {
     int opponent_min_winning_depth = (opponent_winning_seq.empty()) ? INT_MAX : opponent_winning_seq.front().min_winning_depth;
     int self_min_winning_depth = (self_winning_seq.empty()) ? INT_MAX : self_winning_seq.front().min_winning_depth;
     if (self_min_winning_depth < opponent_min_winning_depth && !self_winning_seq.empty()) {
+        DEBUG_POLICY("Attack winning (%d)\n", self_state.agent_id);
         expand_threat_to_states(self_winning_seq.front(), self_state, next_states);
         res = POLICY_SUCCESS;
     }
     else if (!opponent_winning_seq.empty()){
+        DEBUG_POLICY("Defend winning (%d)\n", self_state.agent_id);
         expand_threat_to_states(opponent_winning_seq.front(), self_state, next_states);
         res = POLICY_SUCCESS;
     }
 
     /* No emergent status, attack with self threats */
     if (res != POLICY_SUCCESS) {
+        DEBUG_POLICY("Attack (%d)\n", self_state.agent_id);
         res = policy_attack(self_state, self_threats, next_states);
     }
 
+    /* No self threats, defend opponent threats */
+    if (res != POLICY_SUCCESS) {
+        DEBUG_POLICY("Defend (%d)\n", self_state.agent_id);
+        res = policy_attack(self_state, opponent_threats, next_states);
+    }
+
+    /* No threats */
+    if (res != POLICY_SUCCESS){
+        DEBUG_POLICY("No threats (%d)\n", self_state.agent_id);
+        res = policy_attack_approach(self_state, next_states);
+        if (res != POLICY_SUCCESS) {
+            res = policy_attack_random(self_state, next_states);
+        }
+        if (res != POLICY_SUCCESS) {
+            res = policy_attack_middle(self_state, next_states);
+        }
+    }
+
+    DEBUG_POLICY("Policy default = %d\n",res);
     return res;
   }
 }
