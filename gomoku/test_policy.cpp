@@ -2,6 +2,7 @@
 #include "policy.h"
 #include "state.h"
 #include "constants.h"
+#include "util.h"
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -10,52 +11,6 @@
 
 using namespace std;
 using namespace mcts;
-
-int check_chain(const Position & position, int w, int h, int row, int col, int dr, int dc, int agent_id)
-{
-    int i = row;
-    int j = col;
-    int k = 0;
-    for (; k < 5; k++) {
-        if (i < 0 || i >= h || j < 0 || j >= w)
-            break;
-        if (position[i][j] != agent_id)
-            break;
-        i += dr;
-        j += dc;
-    }
-    return k;
-}
-
-int check_win(const State & state)
-{
-    static int dirs[][2] = {
-        {1, 0},
-        {0, 1},
-        {1, 1},
-        {-1, 1}
-    };
-
-    for (int k = 0; k < 4; k++) {
-        int skip = 0;
-        for (int i = 0; i < state.board_height; i++) {
-            for (int j = 0; j < state.board_width; j++) {
-                if (skip > 0) {
-                    skip--;
-                }
-                if (state.position[i][j] != EMPTY) {
-                    int len = check_chain(state.position, state.board_height, state.board_width, i, j, dirs[k][0], dirs[k][1], state.position[i][j]);
-                    if (len == 5)
-                        return state.position[i][j];
-                    else
-                        skip = len - 1;
-                }
-            }
-        }
-    }
-
-    return EMPTY;
-}
 
 pair<int, int> count(const State & s, int w, int h)
 {
@@ -81,7 +36,7 @@ void expand(const State & s, int depth, int max_depth)
   cout << "Depth " << depth << " : Agent " << (int)s.agent_id << endl;
   cout << s << endl;
   int winner = EMPTY;
-  if ((winner = check_win(s)) != EMPTY) {
+  if ((winner = util_check_win(s.position, s.board_width, s.board_height)) != EMPTY) {
       cout << "Agent " << winner << " win !" << endl;
       return;
   }
@@ -107,7 +62,7 @@ State run(const State & state, bool is_cpu, bool * is_over)
 {
     int winner = EMPTY;
     cout << state << endl;
-    if ((winner = check_win(state)) != EMPTY) {
+    if ((winner = util_check_win(state.position, state.board_width, state.board_height)) != EMPTY) {
         cout << "Agent " << winner << " win !" << endl;
         *is_over = true;
         return state;
@@ -157,7 +112,7 @@ int main(int argc, char * argv[])
   }
   //expand(state, 0, atoi(argv[2]));
   int max_depth = atoi(argv[2]);
-  bool is_cpu = true;
+  bool is_cpu = (atoi(argv[3]) == 0) ? true : false;
   bool is_over = false;
   for (int i = 0; !is_over && i < max_depth; i++) {
     state = run(state, is_cpu, &is_over);

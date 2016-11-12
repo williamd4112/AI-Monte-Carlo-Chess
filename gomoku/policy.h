@@ -8,13 +8,15 @@
 
 #include <vector>
 #include <algorithm>
+#include <random>
+#include <ctime>
 
 #define ONE_STEP_WIN 1
 #define DEFAULT_TSS_MAX_DEPTH 255
 #define OPPONENT_TSS_MAX_DEPTH 255
 #define POLICY_SUCCESS 0x1
 #define POLICY_FAIL 0x0
-#define RANDOM_SEARCH_RANGE 2
+#define RANDOM_SEARCH_RANGE 6
 
 /*
  * policy.h
@@ -79,7 +81,7 @@ namespace mcts {
     return next_states.empty() ? POLICY_FAIL : POLICY_SUCCESS;
   }
 
-  int policy_attack_random(const State & state, std::vector<State> & next_states)
+  int policy_attack_random(const State & state, std::vector<State> & next_states, int random_range=RANDOM_SEARCH_RANGE)
   {
     /// TODO : implement random policy
     int res = POLICY_FAIL;
@@ -88,8 +90,8 @@ namespace mcts {
     for (int i = 0 ; i < state.board_height; i++) {
       for (int j = 0; j < state.board_width; j++) {
         if (state.position[i][j] != EMPTY) {
-          for (int r = i - RANDOM_SEARCH_RANGE; r < i + RANDOM_SEARCH_RANGE; r++) {
-            for (int c = j - RANDOM_SEARCH_RANGE; c < j + RANDOM_SEARCH_RANGE; c++) {
+          for (int r = i - random_range; r < i + random_range; r++) {
+            for (int c = j - random_range; c < j + random_range; c++) {
               if (r < 0 || r >= h || c < 0 || c >= w)
                   continue;
               if (state.position[r][c] == EMPTY) {
@@ -104,7 +106,7 @@ namespace mcts {
       }
     }
     if (!next_states.empty()) {
-        std::random_shuffle(next_states.begin(), next_states.end());
+        std::shuffle(next_states.begin(), next_states.end(), std::mt19937(static_cast<int>(time(0))));
     }
     DEBUG_POLICY("Policy random (%d) = %d\n", state.agent_id, res);
     return res;
@@ -123,7 +125,7 @@ namespace mcts {
       expand_threats_to_states(approaches, state, next_states);
       result = POLICY_SUCCESS;
     }
-    std::random_shuffle(next_states.begin(), next_states.end());
+    std::shuffle(next_states.begin(), next_states.end(), std::mt19937(static_cast<int>(time(0))));
     return result;
   }
 
@@ -165,7 +167,8 @@ namespace mcts {
     /* Compare winning seq depth, attack/defend by winning seq */
     int opponent_min_winning_depth = (opponent_winning_seq.empty()) ? INT_MAX : opponent_winning_seq.front().min_winning_depth;
     int self_min_winning_depth = (self_winning_seq.empty()) ? INT_MAX : self_winning_seq.front().min_winning_depth;
-    if (self_min_winning_depth < opponent_min_winning_depth && !self_winning_seq.empty()) {
+
+    if (self_min_winning_depth <= opponent_min_winning_depth && !self_winning_seq.empty()) {
         DEBUG_POLICY("Attack winning (%d)\n", self_state.agent_id);
         expand_threat_to_states(self_winning_seq.front(), self_state, next_states);
         res = POLICY_SUCCESS;
