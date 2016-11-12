@@ -188,6 +188,7 @@ public:
   Tss(const State & state);
   ~Tss();
 
+  int find_all_threats(std::vector<threat_t> & threats, int begin_level, int end_level, int max_depth);
   int find_all_threats(const State::Position & position, std::vector<threat_t> & threats, int begin_level, int end_level, int max_depth);
 private:
   const State & m_state;
@@ -214,6 +215,12 @@ mcts::Tss::Tss(const mcts::State & state):
 mcts::Tss::~Tss()
 {
 
+}
+
+
+int Tss::find_all_threats(std::vector<threat_t> & threats, int begin_level, int end_level, int max_depth)
+{
+    return find_all_threats(m_state.position, threats, begin_level, end_level, max_depth);
 }
 
 int Tss::find_all_threats(const State::Position & position, std::vector<Tss::threat_t> & threats, int begin_level, int end_level, int max_depth)
