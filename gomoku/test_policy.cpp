@@ -35,7 +35,7 @@ State run(const State & state, bool is_cpu, bool * is_over)
     int winner = EMPTY;
     cout << state << endl;
     if ((winner = util_check_win(state.position, state.board_width, state.board_height)) != NOT_END) {
-        if (winnter == EMPTY)
+        if (winner == EMPTY)
           cout << "Tie" << endl;
         else
           cout << "Agent " << winner << " win !" << endl;
@@ -77,7 +77,7 @@ State run(const State & state, bool is_cpu, bool * is_over)
 int main(int argc, char * argv[])
 {
   std::ifstream in(argv[1]);
-  State state(15, 15, WHITE);
+  State state(15, 15, BLACK);
   for (int i = 0; i < 15; i++) {
     for (int j = 0; j < 15; j++) {
       int val;

@@ -46,10 +46,23 @@ namespace mcts {
   void find_winning_sequence(const std::vector<Tss::threat_t> & threats, std::vector<Tss::threat_t> & seq)
   {
     for (const Tss::threat_t & threat : threats) {
-      DEBUG_POLICY("Threat(%d, %d): [%d, %d, %d]\n", threat.point.i, threat.point.j, threat.winning, threat.final_winning, threat.min_winning_depth);
+      DEBUG_POLICY("Threat(%c, %d): [%d, %d, %d]\n", threat.point.i + 'A', threat.point.j, threat.winning, threat.final_winning, threat.min_winning_depth);
       if (threat.final_winning) {
         seq.push_back(threat);
       }
+    }
+  }
+
+  void find_winning_sequence_sorted(const std::vector<Tss::threat_t> & threats, std::vector<Tss::threat_t> & seq)
+  {
+    int min_depth = INT_MAX;
+    for (const Tss::threat_t & threat : threats) {
+      DEBUG_POLICY("Threat(%c, %d): [%d, %d, %d]\n", threat.point.i + 'A', threat.point.j, threat.winning, threat.final_winning, threat.min_winning_depth);
+      if (threat.final_winning) {
+        if(threat.min_winning_depth <= min_depth) 
+          seq.push_back(threat);
+      }
+      min_depth = threat.min_winning_depth;
     }
   }
 
@@ -81,33 +94,25 @@ namespace mcts {
     return next_states.empty() ? POLICY_FAIL : POLICY_SUCCESS;
   }
 
-  int policy_attack_random(const State & state, std::vector<State> & next_states, int random_range=RANDOM_SEARCH_RANGE)
+  int policy_attack_random(const State & state, std::vector<State> & next_states, int random_range=RANDOM_SEARCH_RANGE, int max_iter=100)
   {
     /// TODO : implement random policy
     int res = POLICY_FAIL;
     int w = state.board_width;
     int h = state.board_height;
-    for (int i = 0 ; i < state.board_height; i++) {
-      for (int j = 0; j < state.board_width; j++) {
-        if (state.position[i][j] != EMPTY) {
-          for (int r = i - random_range; r < i + random_range; r++) {
-            for (int c = j - random_range; c < j + random_range; c++) {
-              if (r < 0 || r >= h || c < 0 || c >= w)
-                  continue;
-              if (state.position[r][c] == EMPTY) {
-                State new_state(state);
-                new_state.position[r][c] = state.agent_id;
-                next_states.push_back(new_state);
-                res = POLICY_SUCCESS;
-              }
-            }
-          }
-        }
+
+    for (int i = 0; i < max_iter; i++) {
+      int r = (int)rand() % h;
+      int c = (int)rand() % w;
+
+      if (state.position[r][c] == EMPTY) {
+        State new_state(state);
+        new_state.position[r][c] = state.agent_id;
+        next_states.push_back(new_state);
+        res = POLICY_SUCCESS;
       }
     }
-    if (!next_states.empty()) {
-        std::shuffle(next_states.begin(), next_states.end(), std::mt19937(static_cast<int>(time(0))));
-    }
+
     DEBUG_POLICY("Policy random (%d) = %d\n", state.agent_id, res);
     return res;
   }
@@ -139,6 +144,50 @@ namespace mcts {
     return result;
   }
 
+  int policy_simple_random(const State & opponent_state, std::vector<State> & next_states, int random_iter)
+  {
+    int res = POLICY_FAIL;
+
+    State self_state(opponent_state);
+    self_state.agent_id ^= (1 << 0);
+
+    /* Search opponent winning sequence */
+    std::vector<Tss::threat_t> opponent_threats;
+    Tss opponent_tss(opponent_state);
+    opponent_tss.find_all_threats(opponent_state.position, opponent_threats, THREAT_LEVEL_5, THREAT_LEVEL_5, 1);
+    DEBUG_POLICY("Agent %d winning seq\n", opponent_state.agent_id);
+
+    /* Search self winning sequences */
+    std::vector<Tss::threat_t> self_threats;
+    Tss self_tss(self_state);
+    self_tss.find_all_threats(self_state.position, self_threats, THREAT_LEVEL_5, THREAT_LEVEL_5, 1);
+    DEBUG_POLICY("Agent %d winning seq\n", self_state.agent_id);
+
+    if (!self_threats.empty()) {
+        DEBUG_POLICY("Attack winning (%d)\n", self_state.agent_id);
+        expand_threats_to_states(self_threats, self_state, next_states);
+        res = POLICY_SUCCESS;
+    }
+    else if (!opponent_threats.empty()){
+        DEBUG_POLICY("Defend winning (%d)\n", self_state.agent_id);
+        expand_threats_to_states(opponent_threats, self_state, next_states);
+        res = POLICY_SUCCESS;
+    }
+
+    if (res != POLICY_SUCCESS){
+        DEBUG_POLICY("No threats (%d)\n", self_state.agent_id);
+        if (res != POLICY_SUCCESS) {
+            res = policy_attack_random(self_state, next_states, RANDOM_SEARCH_RANGE, random_iter);
+        }
+        if (res != POLICY_SUCCESS) {
+            res = policy_attack_middle(self_state, next_states);
+        }
+    }
+
+    DEBUG_POLICY("Policy default = %d\n",res);
+    return res;
+  }
+
   int policy_aggresive(const State & opponent_state, std::vector<State> & next_states, int max_depth=DEFAULT_TSS_MAX_DEPTH)
   {
     int res = POLICY_FAIL;
@@ -152,8 +201,8 @@ namespace mcts {
     Tss opponent_tss(opponent_state);
     opponent_tss.find_all_threats(opponent_state.position, opponent_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, max_depth);
     std::sort(opponent_threats.begin(), opponent_threats.end(), std::greater<Tss::threat_t>());
-    DEBUG_POLICY("Opponent winning seq\n");
-    find_winning_sequence(opponent_threats, opponent_winning_seq);
+    DEBUG_POLICY("Agent %d winning seq\n", opponent_state.agent_id);
+    find_winning_sequence_sorted(opponent_threats, opponent_winning_seq);
 
     /* Search self winning sequences */
     std::vector<Tss::threat_t> self_threats;
@@ -161,34 +210,34 @@ namespace mcts {
     Tss self_tss(self_state);
     self_tss.find_all_threats(self_state.position, self_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, max_depth);
     std::sort(self_threats.begin(), self_threats.end(), std::greater<Tss::threat_t>());
-    DEBUG_POLICY("Self winning seq\n");
-    find_winning_sequence(self_threats, self_winning_seq);
+    DEBUG_POLICY("Agent %d winning seq\n", self_state.agent_id);
+    find_winning_sequence_sorted(self_threats, self_winning_seq);
 
     /* Compare winning seq depth, attack/defend by winning seq */
     int opponent_min_winning_depth = (opponent_winning_seq.empty()) ? INT_MAX : opponent_winning_seq.front().min_winning_depth;
     int self_min_winning_depth = (self_winning_seq.empty()) ? INT_MAX : self_winning_seq.front().min_winning_depth;
 
-    if (self_min_winning_depth <= opponent_min_winning_depth && !self_winning_seq.empty()) {
+    if (self_min_winning_depth < opponent_min_winning_depth && !self_winning_seq.empty()) {
         DEBUG_POLICY("Attack winning (%d)\n", self_state.agent_id);
-        expand_threat_to_states(self_winning_seq.front(), self_state, next_states);
+        expand_threats_to_states(self_winning_seq, self_state, next_states);
         res = POLICY_SUCCESS;
     }
     else if (!opponent_winning_seq.empty()){
         DEBUG_POLICY("Defend winning (%d)\n", self_state.agent_id);
-        expand_threat_to_states(opponent_winning_seq.front(), self_state, next_states);
+        expand_threats_to_states(opponent_winning_seq, self_state, next_states);
         res = POLICY_SUCCESS;
-    }
-
-    /* No emergent status, attack with self threats */
-    if (res != POLICY_SUCCESS) {
-        DEBUG_POLICY("Attack (%d)\n", self_state.agent_id);
-        res = policy_attack(self_state, self_threats, next_states);
     }
 
     /* No self threats, defend opponent threats */
     if (res != POLICY_SUCCESS) {
         DEBUG_POLICY("Defend (%d)\n", self_state.agent_id);
         res = policy_attack(self_state, opponent_threats, next_states);
+    }
+
+    /* No emergent status, attack with self threats */
+    if (res != POLICY_SUCCESS) {
+        DEBUG_POLICY("Attack (%d)\n", self_state.agent_id);
+        res = policy_attack(self_state, self_threats, next_states);
     }
 
     /* No threats */

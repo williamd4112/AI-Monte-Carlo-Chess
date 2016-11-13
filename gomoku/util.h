@@ -11,6 +11,8 @@ namespace mcts
 #define WINNING_CHAIN_NUM 5
 #define NOT_END -1
 
+#define in_boundary(i, j, w, h) (!((i < 0 || i >= h || j < 0 || j >= w)))
+
 typedef std::vector<std::vector<char> > Position;
 
 int util_check_chain(const Position & position, int w, int h, int row, int col, int dr, int dc, int agent_id)
@@ -61,12 +63,14 @@ int util_check_win(const Position & position, int w, int h)
 
                 int chess = position[i][j];
                 if (position[i][j] != EMPTY) {
-                    is_tie = false;
                     int len = util_check_chain(position, h, w, i, j, dr, dc, chess);
                     if (len == WINNING_CHAIN_NUM)
                         return chess;
                     else
                         skip = len - 1;
+                }
+                else {
+                  is_tie = false;
                 }
             }
         }

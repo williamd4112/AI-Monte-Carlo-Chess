@@ -47,10 +47,9 @@ bool match_pattern_position(char type, int chess, int agent_id)
 int match_pattern(
   const std::vector<std::vector<char>> & position,
   int row, int col, int w, int h, int dr, int dc,
-  const char * pattern,
+  const char * pattern, int pattern_len,
   int agent_id)
 {
-  int pattern_len = strlen(pattern);
   DEBUG_PATTERN("match_pattern(%d, %d) = %s\n", dr, dc, pattern);
   for (int cursor = 0; cursor < pattern_len; cursor++) {
     int begin_row = row - cursor * dr;

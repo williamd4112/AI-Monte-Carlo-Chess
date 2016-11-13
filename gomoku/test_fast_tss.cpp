@@ -26,7 +26,7 @@ int main()
   tss.find_all_threats(state.position, threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 255);
   sort(threats.begin(), threats.end(), greater<Tss::threat_t>());
   for (auto t : threats) {
-    printf("(%d, %d, %d, %d, %d)\n",t.point.i,t.point.j,t.level,t.winning,t.final_winning);
+    t.print();
   }
 
   return 0;
