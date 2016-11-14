@@ -3,8 +3,7 @@
 
 #include "constants.h"
 #include "policy.h"
-#include "simulation.h"
-#include "simulation_usual.h"
+#include "sim.h"
 #include "util.h"
 
 namespace mcts

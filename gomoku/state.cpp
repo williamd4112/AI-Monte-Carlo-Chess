@@ -32,7 +32,9 @@ void State::get_expanded_states(std::vector<State> &expanded_states) const
 {
   expanded_states.clear();
   Policy policy(board_height, board_width);
-  int ret = policy.move_defensive(*this, expanded_states);
+  State new_state(*this);
+  new_state.agent_id ^= 1;
+  int ret = policy.move_defensive(new_state, expanded_states);
   if (ret == POLICY_FAIL) {
     return;
   }
@@ -40,34 +42,17 @@ void State::get_expanded_states(std::vector<State> &expanded_states) const
 
 void State::simulate(std::vector<double> &payoffs) const
 {
-  double WIN = 1.0;
-  double LOSE = 0.0;
-  double TIE = (WIN+LOSE)/2;
-  payoffs[BLACK] = 1.0;
-  payoffs[WHITE] = 1.0;
-
-  Position map = position;
-  char color = agent_id;
-
-  while(true) {
-    char result = who_win(map);
-    if(result == TIE) { // Tie is extremely unusual
-      payoffs[BLACK] = TIE;
-      payoffs[WHITE] = TIE;
-      break;
-    } else if(result == BLACK) {
-      payoffs[BLACK] = WIN;
-      payoffs[WHITE] = LOSE;
-      break;
-    } else if(result == WHITE) {
-      payoffs[BLACK] = LOSE;
-      payoffs[WHITE] = WIN;
-      break;
-    } else {
-      next_to_play(map,color);
-      color = (color==BLACK)? WHITE: BLACK;
-      //show_map(map);
-    }
+  Policy policy(board_height, board_width);
+  int ret = sim_rapid_until_end(policy, *this, 10, 100);
+  payoffs[BLACK] = 0.0;
+  payoffs[WHITE] = 0.0;
+  if (ret == BLACK) {
+    payoffs[BLACK] = 1.0;
+  } else if (ret == WHITE) {
+    payoffs[WHITE] = 1.0;
+  } else {
+    payoffs[BLACK] = 0.5;
+    payoffs[WHITE] = 0.5;
   }
 }
 
