@@ -1,14 +1,18 @@
 #ifndef _DEBUG_H_
 #define _DEBUG_H_
 
-#include <cstdio>
 #include <cassert>
-#include "util.h"
 
 #ifdef _DEBUG
 #define DEBUG(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
 #else
 #define DEBUG(args...)
+#endif
+
+#ifdef _DEBUG_UTIL
+#define DEBUG_UTIL(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
+#else
+#define DEBUG_UTIL(args...)
 #endif
 
 #ifdef _DEBUG_TSS

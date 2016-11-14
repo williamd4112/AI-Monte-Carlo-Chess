@@ -3,8 +3,10 @@
 
 #include <vector>
 #include <iostream>
+#include <cmath>
 #include "debug.h"
 #include "constants.h"
+#include "util.h"
 
 #define NUM_DIR 4
 #define ROW 0
@@ -43,13 +45,56 @@ namespace mcts
     }
   };
 
-  struct move_t
-  {
-    int i, j;
-  };
-
   typedef std::vector<std::vector<board_node_t>> board_t;
   typedef std::vector<std::vector<char>> board_map_t;
+
+  int update_connectivity_at(board_t & board, const board_map_t & map, int row, int col, int w, int h)
+  {
+    assert(in_boundary(row, col, w, h));
+    assert(map[row][col] == EMPTY);
+
+    int max_connectivity = 0;
+    for (int d = 0; d < NUM_DIR; d++) {
+      int dr = BOARD_DIRS[d][0];
+      int dc = BOARD_DIRS[d][1];
+      int connectivity = 1;
+
+      int neg_row = row - dr;
+      int neg_col = col - dc;
+      int pos_row = row + dr;
+      int pos_col = col + dc;
+
+      int neg_connectivity = 0;
+      if (in_boundary(neg_row, neg_col, w, h)) {
+        neg_connectivity = board[neg_row][neg_col].connectivity[d];
+        connectivity += neg_connectivity;
+      }
+
+      int pos_connectivity = 0;
+      if (in_boundary(pos_row, pos_col, w, h)) {
+        pos_connectivity = board[pos_row][pos_col].connectivity[d];
+        connectivity += pos_connectivity;
+      }
+
+      for (int k = 0, i = neg_row, j = neg_col; k < neg_connectivity; k++, i -= dr, j -= dc) {
+        if (in_boundary(i, j, w, h)) {
+          board[i][j].connectivity[d] = connectivity;
+        }
+      }
+
+      for (int k = 0, i = pos_row, j = pos_col; k < neg_connectivity; k++, i += dr, j += dc) {
+        if (in_boundary(i, j, w, h)) {
+          board[i][j].connectivity[d] = connectivity;
+        }
+      }
+
+      board[row][col].connectivity[d] = connectivity;
+
+      max_connectivity = std::max(max_connectivity, connectivity);
+    }
+
+    return max_connectivity;
+  }
 
   void find_connectivity_at(board_t & board, const board_map_t & map, int agent_id, int row, int col, int dir, int w, int h)
   {

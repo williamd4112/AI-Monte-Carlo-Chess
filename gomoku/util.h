@@ -3,12 +3,10 @@
 
 #include <iostream>
 #include "constants.h"
-#include "state.h"
 
 namespace mcts
 {
 
-#define WINNING_CHAIN_NUM 5
 #define NOT_END -1
 
 #define in_boundary(i, j, w, h) (!((i < 0 || i >= h || j < 0 || j >= w)))
@@ -20,7 +18,7 @@ int util_check_chain(const Position & position, int w, int h, int row, int col, 
     int i = row;
     int j = col;
     int k = 0;
-    for (; k < WINNING_CHAIN_NUM; k++) {
+    for (; k < NUMTOWIN; k++) {
         if (i < 0 || i >= h || j < 0 || j >= w)
             break;
         if (position[i][j] != agent_id)
@@ -52,22 +50,15 @@ int util_check_win(const Position & position, int w, int h)
     bool is_tie = true;
 
     for (int k = 0; k < dir_num; k++) {
-        int skip = 0;
         int dr = dirs[k][0];
         int dc = dirs[k][1];
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < w; j++) {
-                if (skip > 0) {
-                    skip--;
-                }
-
                 int chess = position[i][j];
                 if (position[i][j] != EMPTY) {
                     int len = util_check_chain(position, h, w, i, j, dr, dc, chess);
-                    if (len == WINNING_CHAIN_NUM)
+                    if (len == NUMTOWIN)
                         return chess;
-                    else
-                        skip = len - 1;
                 }
                 else {
                   is_tie = false;
@@ -80,7 +71,7 @@ int util_check_win(const Position & position, int w, int h)
 }
 
 
-static void print_position(std::ostream& strm, const Position& position)
+void print_position(std::ostream& strm, const Position& position)
 {
   size_t width = 0;
   if (!position.empty()) {
@@ -154,6 +145,17 @@ static void print_position_num(std::ostream& strm, const Position& position)
     }
     strm << '\n';
     y += 1;
+  }
+}
+
+void load_position_from(std::istream & in, Position & position, int w, int h)
+{
+  for (int i = 0; i < h; i++) {
+    for (int j = 0; j < w; j++) {
+      int val;
+      in >> val;
+      position[i][j] = val;
+    }
   }
 }
 

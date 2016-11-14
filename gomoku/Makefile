@@ -1,8 +1,11 @@
 CC=g++
-CFLAGS = -Wall -O3 -std=c++11 -D_UNIX_SLEEP -D_UNIX 
+CFLAGS = -Wall -O3 -std=c++11 -D_UNIX_SLEEP -D_UNIX
 
 all:
 	g++ -O3 main.cpp -o mcts-gomoku -std=c++11
+
+test_util: test_util.cpp util.h state.h
+	$(CC) $(CFLAGS) -D_DEBUG_UTIL test_util.cpp -o $@
 
 test_sim: test_sim.cpp fast_tss.h pattern.h policy.h sim.h util.h
 	$(CC) $(CFLAGS)  test_sim.cpp -o $@

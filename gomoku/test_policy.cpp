@@ -12,6 +12,8 @@
 using namespace std;
 using namespace mcts;
 
+Policy policy(15, 15);
+
 pair<int, int> count(const State & s, int w, int h)
 {
     pair<int, int> res;
@@ -45,7 +47,7 @@ State run(const State & state, bool is_cpu, bool * is_over)
 
     if (is_cpu) {
       std::vector<State> next_states;
-      int res = policy_aggresive(state, next_states);
+      int res = policy.move_defensive(state, next_states);
       if (res == POLICY_FAIL) {
           *is_over = true;
           return state;
@@ -76,8 +78,12 @@ State run(const State & state, bool is_cpu, bool * is_over)
 
 int main(int argc, char * argv[])
 {
+  if (argc < 4) {
+    cout << "./test_policy <state file> <max iteration(round)> <computer first[0/1]>" << endl;
+    return -1;
+  }
   std::ifstream in(argv[1]);
-  State state(15, 15, BLACK);
+  State state(15, 15, WHITE);
   for (int i = 0; i < 15; i++) {
     for (int j = 0; j < 15; j++) {
       int val;
@@ -85,9 +91,9 @@ int main(int argc, char * argv[])
       state.position[i][j] = val;
     }
   }
-  //expand(state, 0, atoi(argv[2]));
+
   int max_depth = atoi(argv[2]);
-  bool is_cpu = (atoi(argv[3]) == 0) ? true : false;
+  bool is_cpu = (atoi(argv[3]) == 1) ? true : false;
   bool is_over = false;
   for (int i = 0; !is_over && i < max_depth; i++) {
     state = run(state, is_cpu, &is_over);
