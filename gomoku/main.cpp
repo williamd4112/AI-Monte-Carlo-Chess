@@ -7,6 +7,7 @@
 #include "constants.h"
 #include "mcts.h"
 #include "simulation_usual.h"
+#include "state.h"
 
 bool check_ai_play(int mode, char& turn, mcts::State::Position& position);
 void play_by_ai(char turn, mcts::State::Position& position);
@@ -23,7 +24,7 @@ const int kModeAiAll = 4;
 const int kHeight = 15;
 const int kWidth = 15;
 const unsigned kMaxDuration = 1000; // In milliseconds
-const unsigned kMaxIterationCount = 10000;
+const unsigned kMaxIterationCount = 1000;
 const double kExplore = 1.41;
 const bool kVerbose = true;
 
