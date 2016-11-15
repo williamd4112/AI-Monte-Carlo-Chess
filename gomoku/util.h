@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 
+#include "board.h"
 #include "constants.h"
 
 #define NOT_END -1
@@ -12,13 +13,17 @@
 
 namespace mcts
 {
+
 typedef std::vector<std::vector<char> > Position;
+struct point_t;
 
 int util_check_chain(const Position & position, int w, int h, int row, int col, int dr, int dc, int agent_id);
 int util_check_win(const Position & position, int w, int h);
 void print_position(std::ostream& strm, const Position& position);
-static void print_position_num(std::ostream& strm, const Position& position);
 void load_position_from(std::istream & in, Position & position, int w, int h);
+void find_position_diff(const Position& before, const Position& after,
+                        point_t& point);
+void get_position_size(const Position& position, point_t& pos_size);
 
 }
 

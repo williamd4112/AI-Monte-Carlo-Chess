@@ -18,7 +18,6 @@ namespace mcts
 class Policy;
 #define INVALID -1
 #define is_valid_move(m) ((m).first != INVALID && (m).second != INVALID)
-typedef std::pair<int, int> move_t;
 
 const static move_t INVALID_MOVE(INVALID, INVALID);
 

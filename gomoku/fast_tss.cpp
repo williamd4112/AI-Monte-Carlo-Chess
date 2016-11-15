@@ -17,9 +17,9 @@ int Tss::find_all_threats(std::vector<threat_t> & threats, int begin_level, int 
   return find_all_threats(m_state.position, threats, begin_level, end_level, max_depth);
 }
 
-int Tss::find_all_threats(const State::Position & position, std::vector<threat_t> & threats, int begin_level, int end_level, int max_depth)
+int Tss::find_all_threats(const Position & position, std::vector<threat_t> & threats, int begin_level, int end_level, int max_depth)
 {
-  State::Position state_position = position;
+  Position state_position = position;
   threat_t root_threat(point_t{0, 0}, false);
 
   find_all_threats_r(state_position, threats, begin_level, end_level, 0, max_depth, root_threat);
@@ -27,7 +27,7 @@ int Tss::find_all_threats(const State::Position & position, std::vector<threat_t
   return threats.size();
 }
 
-std::pair<int, int> Tss::is_gain_square(const threat_t & threat, const State::Position & position, int begin, int end, int dir, int agent_id)
+std::pair<int, int> Tss::is_gain_square(const threat_t & threat, const Position & position, int begin, int end, int dir, int agent_id)
 {
   int begin_pattern_id = g_threat_levels[begin][BEGIN];
   int end_pattern_id = g_threat_levels[end][END];
@@ -68,7 +68,7 @@ bool Tss::is_dependent(const State::Position & position,
 #endif
 
 void Tss::set_cost_squares(
-  State::Position & position,
+  Position & position,
   const int row,
   const int col,
   const char * pattern,
@@ -203,7 +203,7 @@ std::pair<bool, int> Tss::find_all_threats_at_gain_square_r(
 }
 
 std::pair<bool, int> Tss::find_all_threats_r(
-  State::Position & position,
+  Position & position,
   std::vector<threat_t> & threats,
   const int begin,
   const int end,

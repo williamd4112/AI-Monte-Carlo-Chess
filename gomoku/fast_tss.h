@@ -7,8 +7,8 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
-#include <climits>
 
+#include "board.h"
 #include "constants.h"
 #include "state.h"
 #include "pattern.h"
@@ -118,79 +118,6 @@ const static int dirs[4][2] = {
     { -1, 1 }
 };
 
-
-/**
- * @field i row
- * @field j col
- */
-struct point_t {
-  int i, j;
-
-  friend bool operator ==(const point_t & a, const point_t & b)
-  {
-    return a.i == b.i && a.j == b.j;
-  }
-};
-
-/*
- * @brief define threat struct
- * @field point position in board
- * @field gain number of attack caused by this point
- */
-struct threat_t {
-  point_t point;
-  std::vector<threat_t> children;
-  bool winning;
-  bool final_winning;
-  int min_winning_depth;
-
-  threat_t(point_t _point, bool _winning):
-    point(_point),
-    winning(_winning),
-    final_winning(false),
-    min_winning_depth(INT_MAX)
-  {
-
-  }
-
-  threat_t(const threat_t & copy):
-    point(copy.point),
-    children(copy.children),
-    winning(copy.winning),
-    final_winning(copy.final_winning),
-    min_winning_depth(copy.min_winning_depth)
-  {
-
-  }
-
-  void print()
-  {
-    print_r(*this, 0);
-  }
-
-  friend bool operator > (const threat_t & a, const threat_t & b)
-  {
-    if (a.final_winning && !b.final_winning) {
-      return true;
-    } else if (!a.final_winning && b.final_winning) {
-      return false;
-    } else {
-      return a.min_winning_depth < b.min_winning_depth;
-    }
-  }
-
-private:
-  void print_r(threat_t & t, int d)
-  {
-    for (int i = 0; i < d; i++) {
-      putchar('-');
-    }
-    printf("Threat (%c, %d): [%d, %d, %d]\n", t.point.i + 'A', t.point.j, t.winning, t.final_winning, t.min_winning_depth);
-    for (threat_t & child : t.children) {
-      print_r(child, d + 1);
-    }
-  }
-};
 
 /*
  * Construct with a state.

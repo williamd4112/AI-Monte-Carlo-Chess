@@ -106,40 +106,6 @@ void print_position(std::ostream& strm, const Position& position)
   }
 }
 
-static void print_position_num(std::ostream& strm, const Position& position)
-{
-  size_t width = 0;
-  if (!position.empty()) {
-    width = position[0].size();
-  }
-  if (width >= 10) {
-    strm << "  ";
-    for (size_t i = 0; i < width; ++i) {
-      int ten = (i / 10);
-      if (ten == 0) {
-        strm << "  ";
-      } else {
-        strm << ten << " ";
-      }
-    }
-    strm << '\n';
-  }
-  strm << "  ";
-  for (size_t i = 0; i < width; ++i) {
-    strm << (i % 10) << " ";
-  }
-  strm << '\n';
-  int y = 0;
-  for (const auto& row : position) {
-    strm << (char)('A' + y) << " ";
-    for (const auto& val: row) {
-      strm << (char)('0' + val) << " ";
-    }
-    strm << '\n';
-    y += 1;
-  }
-}
-
 void load_position_from(std::istream & in, Position & position, int w, int h)
 {
   for (int i = 0; i < h; i++) {
@@ -148,6 +114,33 @@ void load_position_from(std::istream & in, Position & position, int w, int h)
       in >> val;
       position[i][j] = val;
     }
+  }
+}
+
+void find_position_diff(const Position& before, const Position& after,
+                        point_t& point)
+{
+  point.i = -1;
+  point.j = -1;
+  for (unsigned y = 0; y < before.size(); ++y) {
+    const auto& row = before[y];
+    for (unsigned x = 0; x < row.size(); ++x) {
+      if (row[x] != after[y][x]) {
+        point.j = y;
+        point.i = x;
+        return;
+      }
+    }
+  }
+}
+
+void get_position_size(const Position& position, point_t& pos_size)
+{
+  pos_size.j = position.size();
+  if (!position.empty()) {
+    pos_size.i = position[0].size();
+  } else {
+    pos_size.i = 0;
   }
 }
 

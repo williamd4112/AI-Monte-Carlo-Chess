@@ -4,16 +4,19 @@
 #include <sstream>
 #include <vector>
 
+#include "board.h"
 #include "constants.h"
+#include "fast_tss.h"
 #include "mcts.h"
 #include "sim.h"
 #include "state.h"
+#include "util.h"
 
-bool check_ai_play(int mode, char& turn, mcts::State::Position& position);
-void play_by_ai(char turn, mcts::State::Position& position);
-bool check_game_finished(mcts::State::Position& position);
+bool check_ai_play(int mode, char& turn, mcts::Position& position);
+void play_by_ai(char turn, mcts::Position& position);
+bool check_game_finished(mcts::Position& position);
 void print_status(int mode, char turn, int move_num,
-                  mcts::State::Position& position);
+                  mcts::Position& position);
 void split_string(const std::string& input, std::vector<std::string>& tokens);
 void check_arg_size(const std::vector<std::string>& args, size_t req_size);
 
@@ -41,7 +44,7 @@ int main()
   // Game status
   bool is_game_finished = false;
   // Position
-  mcts::Position position(kHeight, mcts::State::Row(kWidth, mcts::EMPTY));
+  mcts::Position position(kHeight, mcts::Row(kWidth, mcts::EMPTY));
 
   std::vector<std::string> tokens;
   std::cout << "Enter commands (Enter 'help' to see list of commands)" << '\n';
@@ -55,8 +58,7 @@ int main()
         move_num = 0;
         turn = mcts::BLACK;
         is_game_finished = false;
-        position = mcts::Position(kHeight,
-                                  mcts::State::Row(kWidth, mcts::EMPTY));
+        position = mcts::Position(kHeight, mcts::Row(kWidth, mcts::EMPTY));
         std::cout << "Started new position" << '\n';
       } else if (command == "q" || command == "quit") {
         break;
@@ -145,7 +147,7 @@ int main()
   return 0;
 }
 
-bool check_ai_play(int mode, char& turn, mcts::State::Position& position)
+bool check_ai_play(int mode, char& turn, mcts::Position& position)
 {
   if ((mode == kModeAiBlack && turn == mcts::BLACK) ||
       (mode == kModeAiWhite && turn == mcts::WHITE) ||
@@ -158,7 +160,7 @@ bool check_ai_play(int mode, char& turn, mcts::State::Position& position)
   }
 }
 
-void play_by_ai(char turn, mcts::State::Position& position)
+void play_by_ai(char turn, mcts::Position& position)
 {
   mcts::Timer timer(kMaxDuration, kMaxIterationCount);
   mcts::MCTS mcts(&timer, kExplore, kVerbose);
@@ -166,23 +168,13 @@ void play_by_ai(char turn, mcts::State::Position& position)
   mcts::State result_state(kHeight, kWidth, mcts::EMPTY);
   mcts.run(root_state, result_state);
   // Print the stone AI placed
-  bool has_found = false;
-  for (unsigned row = 0; row < kHeight; ++row) {
-    for (unsigned col = 0; col < kWidth; ++col) {
-      if (position[row][col] != result_state.position[row][col]) {
-        std::cout << "AI placed " << (char)('A' + row) << col << '\n';
-        has_found = true;
-        break;
-      }
-    }
-    if (has_found) {
-      break;
-    }
-  }
+  mcts::point_t point;
+  find_position_diff(position, result_state.position, point);
+  std::cout << "AI placed " << (char)('A' + point.j) << point.i << '\n';
   position = result_state.position;
 }
 
-bool check_game_finished(mcts::State::Position& position)
+bool check_game_finished(mcts::Position& position)
 {
   mcts::State state(kHeight, kWidth, position, mcts::EMPTY);
   char winner = sim_check_win(state);
@@ -201,7 +193,7 @@ bool check_game_finished(mcts::State::Position& position)
 }
 
 void print_status(int mode, char turn, int move_num,
-                  mcts::State::Position& position)
+                  mcts::Position& position)
 {
   std::cout << "Mode: ";
   if (mode == kModeAiBlack) {

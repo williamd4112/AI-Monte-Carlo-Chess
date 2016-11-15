@@ -15,9 +15,6 @@ namespace mcts
 class State
 {
 public:
-  typedef std::vector<char> Row;
-  typedef std::vector<Row> Position;
-
   int board_height;
   int board_width;
   Position position;

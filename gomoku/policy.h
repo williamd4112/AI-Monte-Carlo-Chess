@@ -1,16 +1,16 @@
 #ifndef _POLICY_H_
 #define _POLICY_H_
 
-#include "state.h"
-#include "debug.h"
-#include "constants.h"
-#include "fast_tss.h"
-
 #include <vector>
 #include <algorithm>
 #include <random>
 #include <chrono>
 #include <ctime>
+
+#include "board.h"
+#include "constants.h"
+#include "debug.h"
+#include "state.h"
 
 #define ONE_STEP_WIN 1
 #define DEFAULT_TSS_MAX_DEPTH 255
@@ -26,8 +26,6 @@
 namespace mcts
 {
 class State;
-struct threat_t;
-typedef std::pair<int, int> move_t;
 
 class Policy
 {
@@ -50,8 +48,8 @@ private:
   std::mt19937 m_random_gen;
 
   int move_winning_seq(
-    const State & opponent_state, const std::vector<threat_t> & opponent_threats, 
-    const State & self_state, const std::vector<threat_t> & self_threats,  
+    const State & opponent_state, const std::vector<threat_t> & opponent_threats,
+    const State & self_state, const std::vector<threat_t> & self_threats,
     std::vector<move_t> & next_moves);
   int move_when_no_threats(const State & self_state, std::vector<move_t> & next_moves);
   int move_when_no_threats(const State & self_state, std::vector<State> & next_states);
