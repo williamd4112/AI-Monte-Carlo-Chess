@@ -16,8 +16,6 @@
 #include "debug.h"
 #include "util.h"
 
-#define in_boundary(i, j, w, h) (!((i) < 0 || (i) >= h || (j) < 0 || (j) >= w))
-
 bool match_pattern_position(char type, int chess, int agent_id);
 
 int match_pattern(

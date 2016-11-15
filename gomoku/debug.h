@@ -55,6 +55,29 @@
 #define DEBUG_POLICY(args...)
 #endif
 
+#ifdef _LOG_POLICY
+#define LOG_POLICY(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
+#else
+#define LOG_POLICY(args...)
+#endif
+
+#ifdef _LOG_MCTS
+#define LOG_MCTS(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
+#define LOG_MCTS_EXPAND(states) for (auto & s : (states)) std::cout << "Expansion" << endl << s << std::endl
+#ifdef _LOG_MCTS_SIM
+#define LOG_MCTS_SIM_STATE(state) std::cout << "Simulate on state:\n" << (state) << std::endl
+#define LOG_MCTS_SIM_PAYOFF(payoffs) { for (int i = 0; i < (int)(payoffs).size(); i++) printf("payoffs[%d] = %f\n", i, payoffs[i]); }
+#else
+#define LOG_MCTS_SIM_STATE(state)
+#define LOG_MCTS_SIM_PAYOFF(payoffs)
+#endif
+#define LOG_MCTS_BP_STATE(state, payoff, simulation_count) std::cout << "Backpropgate on state(" << payoff << ", " << simulation_count << ")\n" << (state)
+#else
+#define LOG_MCTS(args...)
+#define LOG_MCTS_EXPAND(states)
+#define LOG_MCTS_BP_STATE(state, payoff, simulation_count)
+#endif
+
 #ifdef _DEBUG_SIM
 #define DEBUG_SIM(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
 #define DEBUG_SIM_STATE(s) (std::cout << (s) << std::endl)

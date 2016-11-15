@@ -47,54 +47,56 @@ const static char * g_threat_types[] = {
   "_oooo", // 5
 
   /* Three */
-  "__ooo_",  // 6
-  "_ooo__",  // 7
-  "_o_oo_", // 8
-  "_oo_o_", // 9
+  "x_ooo__",  // 6
+  "__ooo_x",  // 7
+  "_ooo_",   // 8
+  "_o_oo_", // 9
+  "_oo_o_", // 10
 
   /* Two */
-  "oo___", // 10
-  "_oo__", // 11
-  "__oo_", // 12
-  "___oo", // 13
+  "oo___", // 11
+  "_oo__", // 12
+  "__oo_", // 13
+  "___oo", // 14
 
   /* One */
-  "o____", // 14
-  "_o___", // 15
+  "o____", // 15
+  "_o___", // 16
   "__o__", // 17
   "___o_", // 18
   "____o"  // 19
 };
 
 const static int g_threat_types_len[] = {
-  sizeof  "ooooo" - 1,
-  sizeof  "oooo_" - 1,
-  sizeof  "ooo_o" - 1,
-  sizeof  "oo_oo" - 1,
-  sizeof  "o_ooo" - 1,
-  sizeof  "_oooo" - 1,
-  sizeof  "__ooo_" - 1,
-  sizeof  "_ooo__" - 1,
-  sizeof  "_o_oo_" - 1,
-  sizeof  "_oo_o_" - 1,
-  sizeof  "oo___" - 1,
-  sizeof  "_oo__" - 1,
-  sizeof  "__oo_" - 1,
-  sizeof  "___oo" - 1,
-  sizeof  "o____" - 1,
-  sizeof  "_o___" - 1,
-  sizeof  "__o__" - 1,
-  sizeof  "___o_" - 1,
-  sizeof  "____o" - 1
+  sizeof  "ooooo"  - 1, // 0
+  sizeof  "oooo_"  - 1, // 1
+  sizeof  "ooo_o"  - 1, // 2
+  sizeof  "oo_oo"  - 1, // 3
+  sizeof  "o_ooo"  - 1, // 4
+  sizeof  "_oooo"  - 1, // 5
+  sizeof  "x_ooo__" - 1,  // 6
+  sizeof  "__ooo_x" - 1,  // 7
+  sizeof  "_ooo_"  - 1,   // 8
+  sizeof  "_o_oo_" - 1, // 9
+  sizeof  "_oo_o_" - 1, // 10
+  sizeof  "oo___"  - 1, // 11
+  sizeof  "_oo__"  - 1, // 12
+  sizeof  "__oo_"  - 1, // 13
+  sizeof  "___oo"  - 1, // 14
+  sizeof  "o____"  - 1, // 15
+  sizeof  "_o___"  - 1, // 16
+  sizeof  "__o__"  - 1, // 17
+  sizeof  "___o_"  - 1, // 18
+  sizeof  "____o"  - 1  // 19
 };
 
 const static int g_threat_levels[][2] = {
     /* Level 1 */
-    {19, 14},
+    {19, 15},
     /* Level 2 */
-    {13, 10},
+    {14, 11},
     /* Level 3 */
-    {9, 6},
+    {10, 6},
     /* Level 4 */
     {5, 1},
     /* Level 5 */

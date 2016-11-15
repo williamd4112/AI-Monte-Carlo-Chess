@@ -33,7 +33,8 @@ void State::get_expanded_states(std::vector<State> &expanded_states) const
   expanded_states.clear();
   Policy policy(board_height, board_width);
   State new_state(*this);
-  int ret = policy.move_defensive(new_state, expanded_states);
+  int ret = policy.move_balance(new_state, expanded_states);
+
   if (ret == POLICY_FAIL) {
     return;
   }
@@ -42,7 +43,7 @@ void State::get_expanded_states(std::vector<State> &expanded_states) const
 void State::simulate(std::vector<double> &payoffs) const
 {
   Policy policy(board_height, board_width);
-  int ret = sim_rapid_until_end(policy, *this, 15, 5);
+  int ret = sim_rapid_until_end(policy, *this, 100, 4);
   payoffs[BLACK] = 0.0;
   payoffs[WHITE] = 0.0;
   if (ret == BLACK) {

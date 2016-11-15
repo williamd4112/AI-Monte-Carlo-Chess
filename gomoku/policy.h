@@ -42,9 +42,17 @@ public:
   int move_rapid(const State & opponent_state, std::vector<move_t> & next_moves, int max_random_moves=5);
   int move_defensive(const State & opponent_state, std::vector<State> & next_states, int max_depth=DEFAULT_TSS_MAX_DEPTH);
   int move_defensive(const State & opponent_state, std::vector<std::pair<int, int>> & next_moves, int max_depth=DEFAULT_TSS_MAX_DEPTH);
+  int move_balance(const State & opponent_state, std::vector<State> & next_states, int max_depth=DEFAULT_TSS_MAX_DEPTH);
+  int move_balance(const State & opponent_state, std::vector<std::pair<int, int>> & next_moves, int max_depth=DEFAULT_TSS_MAX_DEPTH);
 private:
   std::vector<std::pair<int, int>> m_random_seq;
+  std::mt19937 m_random_gen;
 
+  int move_winning_seq(
+    const State & opponent_state, const std::vector<threat_t> & opponent_threats, 
+    const State & self_state, const std::vector<threat_t> & self_threats,  
+    std::vector<move_t> & next_moves);
+  int move_when_no_threats(const State & self_state, std::vector<move_t> & next_moves);
   int move_threats(const State & state, const std::vector<threat_t> & threats, std::vector<State> & next_states);
   int move_threats(const State & state, const std::vector<threat_t> & threats, std::vector<move_t> & next_moves);
   int move_middle(const State & state, std::vector<State> & next_states);

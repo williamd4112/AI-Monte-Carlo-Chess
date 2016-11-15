@@ -13,6 +13,7 @@ bool match_pattern_position(char type, int chess, int agent_id)
   }
 
   /* No reach */
+  DEBUG_PATTERN("chess = 0x%d; type = %c\n", chess, type);
   assert(false);
 }
 
@@ -22,7 +23,7 @@ int match_pattern(
   const char * pattern, int pattern_len,
   int agent_id)
 {
-  DEBUG_PATTERN("match_pattern(%d, %d) = %s\n", dr, dc, pattern);
+  DEBUG_PATTERN("match_pattern(%d, %d) = %s : len = %d\n", dr, dc, pattern, pattern_len);
   for (int cursor = 0; cursor < pattern_len; cursor++) {
     int begin_row = row - cursor * dr;
     int begin_col = col - cursor * dc;
