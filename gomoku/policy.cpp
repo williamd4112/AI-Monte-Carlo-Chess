@@ -324,7 +324,7 @@ int Policy::move_balance(const State & opponent_state, std::vector<std::pair<int
 
   if (res != POLICY_SUCCESS) {
     LOG_POLICY("Agent %d: balance move\n", self_state.agent_id);
-    res = move_threats(self_state, opponent_threats, next_moves);
+    //res = move_threats(self_state, opponent_threats, next_moves);
     res |= move_threats(self_state, self_threats, next_moves);
     std::shuffle(next_moves.begin(), next_moves.end(), m_random_gen);
   }
@@ -378,11 +378,39 @@ int Policy::move_middle(const State & state, std::vector<move_t> & next_moves)
   return next_moves.empty() ? POLICY_FAIL : POLICY_SUCCESS;
 }
 
-int Policy::move_approach_ex(const State & state, std::vector<State> & next_states)
+int Policy::move_approach_ex(const State & state, std::vector<State> & next_states, int num_samples=3)
 {
-  State self_state(state);
-  self_state.agent_id ^= (1 << 0);
-  return move_approach(self_state, next_states);
+  static const int RANDOM_RANGE = 2;
+  int w = state.board_width;
+  int h = state.board_height;
+  int res = POLICY_FAIL;
+
+  for (int i = 0; i < h; i++) {
+    for (int j = 0; j < w; j++) {
+      if (state.position[i][j] != EMPTY) {
+        for (int k = 0; k < num_samples; k++) {
+          /* Sampling around chess */
+          int r = i + m_random_gen() % RANDOM_RANGE;
+          int c = j + m_random_gen() % RANDOM_RANGE;
+          if (state.position[r][c] != EMPTY) {
+            State new_state(state);
+            new_state.agent_id ^= (1 << state.agent_id);
+            new_state.position[r][c] = new_state.agent_id;
+            next_states.push_back(new_state);
+            res = POLICY_SUCCESS;
+          }
+        }
+      }
+    }
+  }
+
+  if (res == POLICY_FAIL) {
+    State self_state(state);
+    return move_random(self_state, next_states);
+  }
+  else {
+    return res;
+  }
 }
 
 int Policy::move_approach(const State & state, std::vector<State> & next_states)
