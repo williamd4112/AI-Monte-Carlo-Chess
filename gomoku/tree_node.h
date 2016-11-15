@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include "sim.h"
 #include "state.h"
 
 namespace mcts
@@ -78,15 +79,7 @@ public:
         highest_ucb = child_ucb;
       }
     }
-    if (child_highest_ucb != NULL) {
-      if (!child_highest_ucb->is_game_finished()) {
-        return child_highest_ucb;
-      } else {
-        return NULL;
-      }
-    } else {
-      return NULL;
-    }
+    return child_highest_ucb;
   }
 
   TreeNode* get_child_highest_sim_count() const
@@ -146,6 +139,10 @@ private:
   TreeNode* add_child(const State& action)
   {
     TreeNode* new_child = new TreeNode(action, this);
+    char winner = sim_check_win(action);
+    if (winner != EMPTY && winner != NOT_END) {
+      new_child->game_finished = true;
+    }
     children.push_back(Ptr(new_child));
     return new_child;
   }

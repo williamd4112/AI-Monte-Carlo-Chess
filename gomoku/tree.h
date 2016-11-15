@@ -30,11 +30,10 @@ public:
 
   TreeNode* select(double total_sim_count, double k_explore) const
   {
-    TreeNode* visiting_node = NULL;
-    TreeNode* child_highest_ucb = root_node;
-    while (child_highest_ucb != NULL) {
-      visiting_node = child_highest_ucb;
-      child_highest_ucb =
+    TreeNode* visiting_node = root_node;
+    while (!visiting_node->is_game_finished() &&
+           visiting_node->is_fully_expanded()) {
+      visiting_node =
         visiting_node->get_child_highest_ucb(total_sim_count, k_explore);
     }
     return visiting_node;

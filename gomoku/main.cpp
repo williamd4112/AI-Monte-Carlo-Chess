@@ -6,7 +6,7 @@
 
 #include "constants.h"
 #include "mcts.h"
-#include "simulation_usual.h"
+#include "sim.h"
 #include "state.h"
 
 bool check_ai_play(int mode, char& turn, mcts::State::Position& position);
@@ -184,12 +184,11 @@ void play_by_ai(char turn, mcts::State::Position& position)
 
 bool check_game_finished(mcts::State::Position& position)
 {
-  char winner = who_win(position);
-  if (winner == -1) {
+  mcts::State state(kHeight, kWidth, position, mcts::EMPTY);
+  char winner = sim_check_win(state);
+  if (winner == NOT_END) {
     return false;
   } else {
-    mcts::print_position(std::cout, position);
-    std::cout << '\n';
     if (winner == mcts::BLACK) {
       std::cout << "Game finished: black wins" << '\n';
     } else if (winner == mcts::WHITE) {
