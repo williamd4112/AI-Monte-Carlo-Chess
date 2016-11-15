@@ -165,7 +165,8 @@ int Policy::move_winning_seq(
     LOG_POLICY("Agent %d: attack winning\n", self_state.agent_id);
     expand_threats_to_moves(self_winning_seq, self_state, next_moves);
     res = POLICY_SUCCESS;
-  } else if (!opponent_winning_seq.empty()) {
+  }
+  else if (!opponent_winning_seq.empty()) {
     LOG_POLICY("Agent %d: defend winning (%d)\n", self_state.agent_id);
     expand_threats_to_moves(opponent_winning_seq, self_state, next_moves);
     res = POLICY_SUCCESS;
@@ -335,7 +336,7 @@ int Policy::move_balance(const State & opponent_state, std::vector<std::pair<int
 
   if (res != POLICY_SUCCESS) {
     LOG_POLICY("Agent %d: balance move\n", self_state.agent_id);
-    //res = move_threats(self_state, opponent_threats, next_moves);
+    res = move_threats(self_state, opponent_threats, next_moves);
     res |= move_threats(self_state, self_threats, next_moves);
     std::shuffle(next_moves.begin(), next_moves.end(), m_random_gen);
   }
@@ -398,14 +399,14 @@ int Policy::move_approach_ex(const State & state, std::vector<State> & next_stat
   int res = POLICY_FAIL;
   int count = 0;
 
-  /*for (int i = 0; i < h && count < num_samples; i++) {
+  for (int i = 0; i < h && count < num_samples; i++) {
     for (int j = 0; j < w && count < num_samples; j++) {
       if (state.position[i][j] != EMPTY) {
         for (int k = 0; k < num_samples; k++) {
           int sign = (m_random_gen() % w) < random_ts ? -1 : 1;
           int r = i + sign * (m_random_gen() % RANDOM_RANGE);
           int c = j + sign * (m_random_gen() % RANDOM_RANGE);
-          
+
           if (!in_boundary(r, c, w, h)) {
             continue;
           }
@@ -421,7 +422,7 @@ int Policy::move_approach_ex(const State & state, std::vector<State> & next_stat
         }
       }
     }
-  }*/
+  }
 
   if (res == POLICY_FAIL) {
     State self_state(state);
