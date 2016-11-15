@@ -103,7 +103,13 @@ public:
       return NULL;
     }
     if (actions.empty()) {
-      state.get_expanded_states(actions);
+      int strategy = 0;
+      if (parent != NULL) {
+        strategy = STRATEGY_BALANCE;
+      } else {
+        strategy = STRATEGY_APPROACH;
+      }
+      state.get_expanded_states(actions, strategy);
       if (actions.empty()) {
         game_finished = true;
         return NULL;

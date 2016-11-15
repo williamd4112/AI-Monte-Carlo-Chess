@@ -6,6 +6,9 @@
 #include "sim.h"
 #include "util.h"
 
+#define STRATEGY_BALANCE 1
+#define STRATEGY_APPROACH 2
+
 namespace mcts
 {
 
@@ -25,7 +28,8 @@ public:
         char agent_id);
   State(const State& other);
 
-  void get_expanded_states(std::vector<State> &expanded_states) const;
+  void get_expanded_states(std::vector<State> &expanded_states,
+                           int strategy) const;
   void simulate(std::vector<double> &payoffs) const;
 };
 

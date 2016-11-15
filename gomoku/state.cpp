@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "state.h"
 
 namespace mcts
@@ -28,15 +30,18 @@ State::State(const State& other):
 {
 }
 
-void State::get_expanded_states(std::vector<State> &expanded_states) const
+void State::get_expanded_states(std::vector<State> &expanded_states,
+                                int strategy) const
 {
   expanded_states.clear();
   Policy policy(board_height, board_width);
   State new_state(*this);
-  int ret = policy.move_balance(new_state, expanded_states);
-
-  if (ret == POLICY_FAIL) {
-    return;
+  if (strategy == STRATEGY_BALANCE) {
+    policy.move_balance(new_state, expanded_states);
+  } else if (strategy == STRATEGY_APPROACH) {
+    policy.move_balance(new_state, expanded_states); //TODO change to approach
+  } else {
+    throw std::invalid_argument("Unknown strategy value");
   }
 }
 
