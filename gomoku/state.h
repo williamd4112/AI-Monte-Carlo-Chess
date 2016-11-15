@@ -31,6 +31,8 @@ public:
   void get_expanded_states(std::vector<State> &expanded_states,
                            int strategy) const;
   void simulate(std::vector<double> &payoffs) const;
+
+  friend std::ostream& operator<<(std::ostream &strm, const State& obj);
 };
 
 }
