@@ -104,7 +104,17 @@ public:
     }
     if (actions.empty()) {
       int strategy = 0;
-      if (parent != NULL) {
+      const auto& position = state.position;
+      int stone_count = 0;
+      for (size_t y = 0; y < position.size(); ++y) {
+        const auto& row = position[y];
+        for (size_t x = 0; x < row.size(); ++x) {
+          if (row[x] != EMPTY) {
+            stone_count += 1;
+          }
+        }
+      }
+      if (stone_count > 1) {
         strategy = STRATEGY_BALANCE;
       } else {
         strategy = STRATEGY_APPROACH;
@@ -145,6 +155,7 @@ private:
   TreeNode* add_child(const State& action)
   {
     TreeNode* new_child = new TreeNode(action, this);
+    new_child->parent = this;
     char winner = sim_check_win(action);
     if (winner != EMPTY && winner != NOT_END) {
       new_child->game_finished = true;
