@@ -33,7 +33,6 @@ void State::get_expanded_states(std::vector<State> &expanded_states) const
   expanded_states.clear();
   Policy policy(board_height, board_width);
   State new_state(*this);
-  new_state.agent_id ^= 1;
   int ret = policy.move_defensive(new_state, expanded_states);
   if (ret == POLICY_FAIL) {
     return;
@@ -43,7 +42,7 @@ void State::get_expanded_states(std::vector<State> &expanded_states) const
 void State::simulate(std::vector<double> &payoffs) const
 {
   Policy policy(board_height, board_width);
-  int ret = sim_rapid_until_end(policy, *this, 10, 100);
+  int ret = sim_rapid_until_end(policy, *this, 15, 5);
   payoffs[BLACK] = 0.0;
   payoffs[WHITE] = 0.0;
   if (ret == BLACK) {

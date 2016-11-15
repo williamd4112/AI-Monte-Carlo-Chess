@@ -12,7 +12,8 @@
 bool check_ai_play(int mode, char& turn, mcts::State::Position& position);
 void play_by_ai(char turn, mcts::State::Position& position);
 bool check_game_finished(mcts::State::Position& position);
-void print_status(int mode, char turn, int move_num);
+void print_status(int mode, char turn, int move_num,
+                  mcts::State::Position& position);
 void split_string(const std::string& input, std::vector<std::string>& tokens);
 void check_arg_size(const std::vector<std::string>& args, size_t req_size);
 
@@ -79,7 +80,7 @@ int main()
               if (mode == kModeHumanAll) {
                 mcts::print_position(std::cout, position);
               }
-              print_status(mode, turn, move_num);
+              print_status(mode, turn, move_num, position);
               if (check_game_finished(position)) {
                 is_game_finished = true;
               }
@@ -110,7 +111,7 @@ int main()
         }
       } else if (command == "s" || command == "status") {
         mcts::print_position(std::cout, position);
-        print_status(mode, turn, move_num);
+        print_status(mode, turn, move_num, position);
       } else if (command == "help") {
         std::cout << "(n|new): create new position" << '\n';
         std::cout << "(q|quit): quit the program" << '\n';
@@ -133,7 +134,7 @@ int main()
       move_num += 1;
       mcts::print_position(std::cout, position);
       std::cout << '\n';
-      print_status(mode, turn, move_num);
+      print_status(mode, turn, move_num, position);
       if (check_game_finished(position)) {
         is_game_finished = true;
       }
@@ -161,7 +162,7 @@ void play_by_ai(char turn, mcts::State::Position& position)
 {
   mcts::Timer timer(kMaxDuration, kMaxIterationCount);
   mcts::MCTS mcts(&timer, kExplore, kVerbose);
-  mcts::State root_state(kHeight, kWidth, position, turn);
+  mcts::State root_state(kHeight, kWidth, position, !turn);
   mcts::State result_state(kHeight, kWidth, mcts::EMPTY);
   mcts.run(root_state, result_state);
   // Print the stone AI placed
@@ -200,7 +201,8 @@ bool check_game_finished(mcts::State::Position& position)
   }
 }
 
-void print_status(int mode, char turn, int move_num)
+void print_status(int mode, char turn, int move_num,
+                  mcts::State::Position& position)
 {
   std::cout << "Mode: ";
   if (mode == kModeAiBlack) {
@@ -226,6 +228,7 @@ void print_status(int mode, char turn, int move_num)
   std::cout << (move_num + 1);
   std::cout << " (Next)";
   std::cout << '\n';
+  check_game_finished(position);
 }
 
 void split_string(const std::string& input, std::vector<std::string>& tokens)
