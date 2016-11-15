@@ -36,12 +36,10 @@ static void find_winning_sequence_sorted(const std::vector<threat_t> & threats, 
   int min_depth = INT_MAX;
   for (const threat_t & threat : threats) {
     DEBUG_POLICY("Threat(%c, %d): [%d, %d, %d]\n", threat.point.i + 'A', threat.point.j, threat.winning, threat.final_winning, threat.min_winning_depth);
-    if (threat.final_winning) {
-      if(threat.min_winning_depth <= min_depth) {
-        seq.push_back(threat);
-      }
+    if (threat.final_winning && threat.min_winning_depth <= min_depth) {
+      seq.push_back(threat);
+      min_depth = threat.min_winning_depth;
     }
-    min_depth = threat.min_winning_depth;
   }
 }
 
@@ -141,27 +139,29 @@ int Policy::move_random(const State & state, std::vector<State> & next_states, i
 }
 
 int Policy::move_winning_seq(
-  const State & opponent_state, const std::vector<threat_t> & opponent_threats,
-  const State & self_state, const std::vector<threat_t> & self_threats,
+  const State & opponent_state, std::vector<threat_t> & opponent_threats,
+  const State & self_state, std::vector<threat_t> & self_threats,
   std::vector<move_t> & next_moves)
 {
   int res = POLICY_FAIL;
 
   std::vector<threat_t> opponent_winning_seq;
   LOG_POLICY("Agent %d winning seq\n", opponent_state.agent_id);
+
+  std::sort(opponent_threats.begin(), opponent_threats.end(), std::greater<threat_t>());
   find_winning_sequence_sorted(opponent_threats, opponent_winning_seq);
-  std::sort(opponent_winning_seq.begin(), opponent_winning_seq.end(), std::greater<threat_t>());
 
   std::vector<threat_t> self_winning_seq;
   LOG_POLICY("Agent %d winning seq\n", self_state.agent_id);
+
+  std::sort(self_threats.begin(), self_threats.end(), std::greater<threat_t>());
   find_winning_sequence_sorted(self_threats, self_winning_seq);
-  std::sort(self_winning_seq.begin(), self_winning_seq.end(), std::greater<threat_t>());
 
   /* Compare winning seq depth, attack/defend by winning seq */
   int opponent_min_winning_depth = (opponent_winning_seq.empty()) ? INT_MAX : opponent_winning_seq.front().min_winning_depth;
   int self_min_winning_depth = (self_winning_seq.empty()) ? INT_MAX : self_winning_seq.front().min_winning_depth;
 
-  if (self_min_winning_depth < opponent_min_winning_depth && !self_winning_seq.empty()) {
+  if (self_min_winning_depth <= opponent_min_winning_depth && !self_winning_seq.empty()) {
     LOG_POLICY("Agent %d: attack winning\n", self_state.agent_id);
     expand_threats_to_moves(self_winning_seq, self_state, next_moves);
     res = POLICY_SUCCESS;
@@ -338,7 +338,6 @@ int Policy::move_balance(const State & opponent_state, std::vector<std::pair<int
     LOG_POLICY("Agent %d: balance move\n", self_state.agent_id);
     res = move_threats(self_state, opponent_threats, next_moves);
     res |= move_threats(self_state, self_threats, next_moves);
-    std::shuffle(next_moves.begin(), next_moves.end(), m_random_gen);
   }
 
   if (res != POLICY_SUCCESS) {
@@ -395,7 +394,7 @@ int Policy::move_approach_ex(const State & state, std::vector<State> & next_stat
   static const int RANDOM_RANGE = 2;
   int w = state.board_width;
   int h = state.board_height;
-  int random_ts = w / 2;
+  unsigned int random_ts = w / 2;
   int res = POLICY_FAIL;
   int count = 0;
 

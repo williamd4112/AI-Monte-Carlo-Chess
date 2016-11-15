@@ -55,8 +55,6 @@ int update_connectivity_at(board_t & board, const board_map_t & map, int row, in
 
 void find_connectivity_at(board_t & board, const board_map_t & map, int agent_id, int row, int col, int dir, int w, int h)
 {
-#define in_boundary(i, j, w, h) (!((i) < 0 || (i) >= h || (j) < 0 || (j) >= w))
-
   int i = row;
   int j = col;
   int dr = BOARD_DIRS[dir][ROW];
@@ -88,8 +86,8 @@ void find_connectivity_at(board_t & board, const board_map_t & map, int agent_id
 void find_connectivities(board_t & board, const board_map_t & map, int agent_id)
 {
   for (int k = 0; k < NUM_DIR; k++) {
-    for (int i = 0; i < map.size(); i++) {
-      for (int j = 0; j < map[i].size(); j++) {
+    for (int i = 0; i < (int)map.size(); i++) {
+      for (int j = 0; j < (int)map[i].size(); j++) {
         if (!board[i][j].visited[k]) {
           find_connectivity_at(board, map, agent_id, i, j, k, map[i].size(), map.size());
         }

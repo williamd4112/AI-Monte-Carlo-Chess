@@ -1,13 +1,15 @@
 CC = g++
-CFLAGS = -Wall -std=c++11 -D_UNIX_SLEEP -D_UNIX -D_LOG_MCTS
-
+CFLAGS = -Wall -O3 -std=c++11 -D_UNIX_SLEEP -D_UNIX
 OBJS = state.o policy.o fast_tss.o pattern.o board.o util.o simulation.o simulation_usual.o sim.o
 
+OPT :=
+
 all: $(OBJS)
-	g++ $(CFLAGS) -O3  main.cpp $(OBJS) -o mcts-gomoku -std=c++11
+	echo $(OPT)
+	g++ $(CFLAGS) main.cpp $(OBJS) -o mcts-gomoku -std=c++11
 
 debug: $(OBJS)
-	g++ -g $(CFLAGS) main.cpp $(OBJS) -o mcts-gomoku-dbg -std=c++11
+	g++ $(DBG) $(CFLAGS) main.cpp $(OBJS) -o mcts-gomoku-dbg -std=c++11
 
 test_util: test_util.cpp util.h state.h
 	$(CC) $(CFLAGS) -O3 -D_DEBUG_UTIL test_util.cpp -o $@

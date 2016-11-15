@@ -48,8 +48,8 @@ private:
   std::mt19937 m_random_gen;
 
   int move_winning_seq(
-    const State & opponent_state, const std::vector<threat_t> & opponent_threats,
-    const State & self_state, const std::vector<threat_t> & self_threats,
+    const State & opponent_state, std::vector<threat_t> & opponent_threats,
+    const State & self_state, std::vector<threat_t> & self_threats,
     std::vector<move_t> & next_moves);
   int move_when_no_threats(const State & self_state, std::vector<move_t> & next_moves);
   int move_when_no_threats(const State & self_state, std::vector<State> & next_states);

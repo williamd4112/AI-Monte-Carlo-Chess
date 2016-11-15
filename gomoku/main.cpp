@@ -27,8 +27,8 @@ const int kModeAiAll = 4;
 
 const int kHeight = 15;
 const int kWidth = 15;
-const unsigned kMaxDuration = 1000; // In milliseconds
-const unsigned kMaxIterationCount = 1000;
+const unsigned kMaxDuration = 5000; // In milliseconds
+const unsigned kMaxIterationCount = 5000;
 const double kExplore = 1.41;
 const bool kVerbose = true;
 

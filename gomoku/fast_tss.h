@@ -118,7 +118,6 @@ const static int dirs[4][2] = {
     { -1, 1 }
 };
 
-
 /*
  * Construct with a state.
  * After construction, we can get all threats by calling get_threats()
@@ -168,17 +167,6 @@ private:
     threat_t & threat,
     const int begin, const int end,
     const int depth, const int max_depth);
-
-#ifdef _OLD_FAST_TSS
-  bool is_dependent(const State::Position & position,
-    int begin_row, int begin_col, int end_row, int end_col,
-    int dr, int dc, const char * pattern, int pattern_match_pos, int pattern_len,
-    const point_t & dependent_square);
-
-  void set_cost_squares(State::Position & position, const char * pattern, int pattern_len, int opponent_id, int begin_row, int begin_col, int end_row, int end_col, int dr, int dc);
-
-  void unset_cost_squares(State::Position & position, const char * pattern, int pattern_len, int opponent_id, int begin_row, int begin_col, int end_row, int end_col, int dr, int dc);
-#endif
 };
 
 }

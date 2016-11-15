@@ -27,8 +27,6 @@ int match_pattern(
   for (int cursor = 0; cursor < pattern_len; cursor++) {
     int begin_row = row - cursor * dr;
     int begin_col = col - cursor * dc;
-    int end_row = row + (pattern_len - cursor) * dr;
-    int end_col = col + (pattern_len - cursor) * dc;
 
     DEBUG_PATTERN("Begin at (%d, %d) End at (%d, %d)\n", begin_row, begin_col,
                   end_row, end_col);

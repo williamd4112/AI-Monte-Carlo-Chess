@@ -51,22 +51,6 @@ std::pair<int, int> Tss::is_gain_square(const threat_t & threat, const Position 
   return std::pair<int, int>(match_index, match_pos);
 }
 
-#ifdef _OLD_FAST_TSS
-bool Tss::is_dependent(const State::Position & position,
-                       int begin_row, int begin_col, int end_row, int end_col,
-                       int dr, int dc, const char * pattern, int pattern_match_pos, int pattern_len,
-                       const Tss::point_t & dependent_square)
-{
-  bool dependency = false;
-  for (int i = 0, r = begin_row, c = begin_col; i < pattern_len && !dependency; i++, r += dr, c += dc) {
-    if (position[r][c] == m_state.agent_id && i != pattern_match_pos) {
-      dependency = (dependent_square.i == r && dependent_square.j == c);
-    }
-  }
-  return dependency;
-}
-#endif
-
 void Tss::set_cost_squares(
   Position & position,
   const int row,
@@ -80,10 +64,7 @@ void Tss::set_cost_squares(
   int dr = dirs[dir][0];
   int dc = dirs[dir][1];
   int begin_row = row - dr * match_pos,
-      begin_col = col - dc * match_pos,
-      end_row = row + dr * (pattern_len - match_pos - 1),
-      end_col = col + dc * (pattern_len - match_pos - 1);
-
+      begin_col = col - dc * match_pos;
   for (int i = 0, r = begin_row, c = begin_col; i < pattern_len; i++, r += dr, c += dc) {
     if (pattern[i] == BLANK) {
       position[r][c] = id;
@@ -217,7 +198,6 @@ std::pair<bool, int> Tss::find_all_threats_r(
   const int w = m_state.board_width;
   const int h = m_state.board_height;
   const int opponent_id = m_state.agent_id ^ (1 << 0);
-  const int agent_id = m_state.agent_id;
 
   std::pair<bool, int> res;
   res.first = false;
@@ -244,8 +224,6 @@ std::pair<bool, int> Tss::find_all_threats_r(
             const int match_pos = match.second;
             const char * pattern = g_threat_types[match_index];
             const int pattern_len = g_threat_types_len[match_index];
-            const int next_depth = depth + 1;
-            const bool winning = (match_index == 0);
 
             DEBUG_FAST_TSS("Match pattern %s (at %d)\n", pattern, match_pos);
             set_cost_squares(position, i, j, pattern, pattern_len, match_pos, opponent_id, dir);

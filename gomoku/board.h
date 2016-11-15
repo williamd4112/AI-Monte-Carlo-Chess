@@ -99,6 +99,12 @@ struct threat_t {
     }
   }
 
+  friend std::ostream & operator <<(std::ostream & os, const threat_t & t)
+  {
+    return os << "(" << (char)(t.point.i + 'A') << ", " << t.point.j << ") = "
+      << "[" << t.winning << ", " << t.final_winning << ", " << t.min_winning_depth  << "]";
+  }
+
 private:
   void print_r(threat_t & t, int d)
   {
