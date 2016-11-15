@@ -286,7 +286,7 @@ int Policy::move_defensive(const State & opponent_state, std::vector<std::pair<i
   }
 
   if (res != POLICY_SUCCESS) {
-    move_when_no_threats(self_state, next_moves);
+    rest = move_when_no_threats(self_state, next_moves);
   }
 
   LOG_POLICY("Policy defensive result = %d\n",res);
@@ -330,10 +330,11 @@ int Policy::move_balance(const State & opponent_state, std::vector<std::pair<int
   }
 
   if (res != POLICY_SUCCESS) {
-    move_when_no_threats(self_state, next_moves);
+    res = move_when_no_threats(self_state, next_moves);
   }
 
   LOG_POLICY("Policy balance result = %d\n",res);
+  return res;
 }
 
 int Policy::move_threats(const State & state, const std::vector<threat_t> & threats, std::vector<State> & next_states)
