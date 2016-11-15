@@ -224,6 +224,17 @@ int Policy::move_rapid(const State & opponent_state, std::vector<move_t> & next_
   return res;
 }
 
+int Policy::move_when_no_threats(const State & self_state, std::vector<State> & next_states)
+{
+  int res = POLICY_FAIL;
+  std::vector<move_t> next_moves;
+  res = move_when_no_threats(self_state, next_moves);
+
+  expand_moves_to_states(next_moves, self_state, next_states);
+
+  return res;
+}
+
 int Policy::move_when_no_threats(const State & self_state, std::vector<move_t> & next_moves)
 {
   int res = POLICY_FAIL;
@@ -387,11 +398,10 @@ int Policy::move_approach_ex(const State & state, std::vector<State> & next_stat
   int res = POLICY_FAIL;
   int count = 0;
 
-  for (int i = 0; i < h && count < num_samples; i++) {
+  /*for (int i = 0; i < h && count < num_samples; i++) {
     for (int j = 0; j < w && count < num_samples; j++) {
       if (state.position[i][j] != EMPTY) {
         for (int k = 0; k < num_samples; k++) {
-          /* Sampling around chess */
           int sign = (m_random_gen() % w) < random_ts ? -1 : 1;
           int r = i + sign * (m_random_gen() % RANDOM_RANGE);
           int c = j + sign * (m_random_gen() % RANDOM_RANGE);
@@ -406,15 +416,17 @@ int Policy::move_approach_ex(const State & state, std::vector<State> & next_stat
             new_state.position[r][c] = new_state.agent_id;
             next_states.push_back(new_state);
             res = POLICY_SUCCESS;
+            count++;
           }
         }
       }
     }
-  }
+  }*/
 
   if (res == POLICY_FAIL) {
     State self_state(state);
-    return move_random(self_state, next_states);
+    self_state.agent_id ^= (1 << 0);
+    return move_when_no_threats(self_state, next_states);
   }
   else {
     return res;
