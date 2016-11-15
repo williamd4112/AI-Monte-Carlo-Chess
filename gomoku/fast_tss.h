@@ -185,7 +185,7 @@ private:
     for (int i = 0; i < d; i++) {
       putchar('-');
     }
-    printf("Threat (%d, %d): [%d, %d, %d]\n", t.point.i, t.point.j, t.winning, t.final_winning, t.min_winning_depth);
+    printf("Threat (%c, %d): [%d, %d, %d]\n", t.point.i + 'A', t.point.j, t.winning, t.final_winning, t.min_winning_depth);
     for (threat_t & child : t.children) {
       print_r(child, d + 1);
     }
