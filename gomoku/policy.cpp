@@ -91,6 +91,11 @@ Policy::Policy(int w, int h):
   reshuffle();
 }
 
+Policy::~Policy()
+{
+
+}
+
 void Policy::reshuffle()
 {
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -109,13 +114,14 @@ int Policy::move_random(const State & state, std::vector<move_t> & moves, int ma
     if (state.position[row][col] == EMPTY) {
       DEBUG_POLICY("\tmove_random = [%d, %d: %d]\n", move.first, move.second, state.agent_id);
       moves.push_back(move);
-      reshuffle();
       sample++;
       if (sample >= max_moves) {
         return POLICY_SUCCESS;
       }
     }
   }
+
+  //reshuffle();
   return (moves.empty()) ? POLICY_FAIL : POLICY_SUCCESS;
 }
 
@@ -176,6 +182,12 @@ int Policy::move_rapid(const State & opponent_state, std::vector<move_t> & next_
       DEBUG_POLICY("Agent %d: move middle\n", self_state.agent_id);
       res = move_middle(self_state, next_moves);
     }
+
+    if (res != POLICY_SUCCESS) {
+      DEBUG_POLICY("Agent %d: move approach\n", self_state.agent_id);
+      res = move_approach(self_state, next_moves);
+    }
+
     if (res != POLICY_SUCCESS) {
       DEBUG_POLICY("Agent %d: move random\n", self_state.agent_id);
       res = move_random(self_state, next_moves, max_random_moves);
@@ -252,6 +264,12 @@ int Policy::move_defensive(const State & opponent_state, std::vector<std::pair<i
     if (res != POLICY_SUCCESS) {
       res = move_middle(self_state, next_moves);
     }
+
+    if (res != POLICY_SUCCESS) {
+      DEBUG_POLICY("Agent %d: move approach\n", self_state.agent_id);
+      res = move_approach(self_state, next_moves);
+    }
+
     if (res != POLICY_SUCCESS) {
       res = move_random(self_state, next_moves, 5);
     }
@@ -301,5 +319,29 @@ int Policy::move_middle(const State & state, std::vector<move_t> & next_moves)
   }
   return next_moves.empty() ? POLICY_FAIL : POLICY_SUCCESS;
 }
+
+int Policy::move_approach(const State & state, std::vector<State> & next_states)
+{
+  int res = POLICY_FAIL;
+  std::vector<move_t> next_moves;
+  res = move_approach(state, next_moves);
+  expand_moves_to_states(next_moves, state, next_states);
+
+  return res;
+}
+
+int Policy::move_approach(const State & state, std::vector<move_t> & next_moves)
+{
+  Tss tss(state);
+  std::vector<threat_t> threats;
+  tss.find_all_threats(threats, THREAT_LEVEL_2, THREAT_LEVEL_2, 2);
+
+  expand_threats_to_moves(threats, state, next_moves);
+
+  DEBUG_POLICY("\tmove_approach[agent = %d] = %d\n", state.agent_id, next_moves.size());
+
+  return next_moves.empty() ? POLICY_FAIL : POLICY_SUCCESS;
+}
+
 
 }

@@ -17,7 +17,6 @@
 #define OPPONENT_TSS_MAX_DEPTH 255
 #define POLICY_SUCCESS 0x1
 #define POLICY_FAIL 0x0
-#define RANDOM_SEARCH_RANGE 3
 
 /*
  * policy.h
@@ -34,7 +33,7 @@ class Policy
 {
 public:
   Policy(int w, int h);
-  ~Policy() {}
+  ~Policy();
 
   void reshuffle();
   int move_random(const State & state, std::vector<move_t> & moves, int max_moves=5);
@@ -50,6 +49,8 @@ private:
   int move_threats(const State & state, const std::vector<threat_t> & threats, std::vector<move_t> & next_moves);
   int move_middle(const State & state, std::vector<State> & next_states);
   int move_middle(const State & state, std::vector<move_t> & next_moves);
+  int move_approach(const State & state, std::vector<State> & next_states);
+  int move_approach(const State & state, std::vector<move_t> & next_moves);
 };
 
 }
