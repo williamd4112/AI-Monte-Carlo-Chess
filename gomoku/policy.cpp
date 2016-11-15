@@ -377,6 +377,13 @@ int Policy::move_middle(const State & state, std::vector<move_t> & next_moves)
   return next_moves.empty() ? POLICY_FAIL : POLICY_SUCCESS;
 }
 
+int Policy::move_approach_ex(const State & state, std::vector<State> & next_states)
+{
+  State self_state(state);
+  self_state.agent_id ^= (1 << 0);
+  return move_approach(self_state, next_states);
+}
+
 int Policy::move_approach(const State & state, std::vector<State> & next_states)
 {
   int res = POLICY_FAIL;
