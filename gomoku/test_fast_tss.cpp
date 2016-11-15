@@ -6,11 +6,10 @@
 #include <algorithm>
 
 using namespace std;
-using namespace mcts;
 
 int main()
 {
-  State state(15, 15, BLACK);
+  mcts::State state(15, 15, mcts::BLACK);
   for (int i = 0; i < 15; i++) {
     for (int j = 0; j < 15; j++) {
       int val;
@@ -21,10 +20,10 @@ int main()
     cout << endl;
   }
 
-  Tss tss(state);
-  std::vector<Tss::threat_t> threats;
+  mcts::Tss tss(state);
+  std::vector<mcts::threat_t> threats;
   tss.find_all_threats(state.position, threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 255);
-  sort(threats.begin(), threats.end(), greater<Tss::threat_t>());
+  sort(threats.begin(), threats.end(), greater<mcts::threat_t>());
   for (auto t : threats) {
     t.print();
   }
