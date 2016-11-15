@@ -39,7 +39,7 @@ void State::get_expanded_states(std::vector<State> &expanded_states,
   if (strategy == STRATEGY_BALANCE) {
     policy.move_balance(new_state, expanded_states);
   } else if (strategy == STRATEGY_APPROACH) {
-    policy.move_balance(new_state, expanded_states); //TODO change to approach
+    policy.move_approach_ex(new_state, expanded_states);
   } else {
     throw std::invalid_argument("Unknown strategy value");
   }

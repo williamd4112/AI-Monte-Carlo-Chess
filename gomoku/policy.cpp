@@ -88,7 +88,7 @@ Policy::Policy(int w, int h):
       m_random_seq[index].second = j;
     }
   }
-  
+
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   m_random_gen = std::mt19937(seed);
 
@@ -141,8 +141,8 @@ int Policy::move_random(const State & state, std::vector<State> & next_states, i
 }
 
 int Policy::move_winning_seq(
-  const State & opponent_state, const std::vector<threat_t> & opponent_threats, 
-  const State & self_state, const std::vector<threat_t> & self_threats,  
+  const State & opponent_state, const std::vector<threat_t> & opponent_threats,
+  const State & self_state, const std::vector<threat_t> & self_threats,
   std::vector<move_t> & next_moves)
 {
   int res = POLICY_FAIL;
@@ -286,7 +286,7 @@ int Policy::move_defensive(const State & opponent_state, std::vector<std::pair<i
   }
 
   if (res != POLICY_SUCCESS) {
-    rest = move_when_no_threats(self_state, next_moves);
+    res = move_when_no_threats(self_state, next_moves);
   }
 
   LOG_POLICY("Policy defensive result = %d\n",res);
