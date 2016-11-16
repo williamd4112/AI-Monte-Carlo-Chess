@@ -3,7 +3,7 @@ CFLAGS = -Wall -std=c++11 -D_UNIX_SLEEP -D_UNIX
 CFLAGS += -O3
 #CFLAGS += -g
 #CFLAGS += -D_LOG_FAST_TSS -D_DEBUG_FAST_TSS
-#CFLAGS += -D_LOG_POLICY
+#CFLAGS += -D_LOG_POLICY -D_DEBUG_POLICY
 OBJS = state.o policy.o fast_tss.o pattern.o board.o util.o simulation.o simulation_usual.o sim.o
 
 OPT :=

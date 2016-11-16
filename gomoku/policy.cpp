@@ -24,7 +24,8 @@ int find_one_step_winning(const std::vector<threat_t> & threats)
 void find_winning_sequence(const std::vector<threat_t> & threats, std::vector<threat_t> & seq)
 {
   for (const threat_t & threat : threats) {
-    LOG_POLICY("Threat(%c, %d): [%d, %d, %d]\n", threat.point.i + 'A', threat.point.j, threat.winning, threat.final_winning, threat.min_winning_depth);
+    DEBUG_POLICY("Threat(%c, %d): [%d, %d, %d]\n", 
+      threat.point.i + 'A', threat.point.j, threat.winning, threat.final_winning, threat.min_winning_depth);
     if (threat.final_winning) {
       seq.push_back(threat);
     }
@@ -35,7 +36,9 @@ void find_winning_sequence_sorted(const std::vector<threat_t> & threats, std::ve
 {
   int min_depth = INT_MAX;
   for (const threat_t & threat : threats) {
-    LOG_POLICY("Threat(%c, %d): [%d, %d, %d]\n", threat.point.i + 'A', threat.point.j, threat.winning, threat.final_winning, threat.min_winning_depth);
+    DEBUG_POLICY("Threat(%c, %d): [%d, %d, %d] / %d\n", 
+      threat.point.i + 'A', threat.point.j, 
+      threat.winning, threat.final_winning, threat.min_winning_depth, threat.match_pattern_level);
     if (threat.final_winning && threat.min_winning_depth <= min_depth) {
       seq.push_back(threat);
       min_depth = threat.min_winning_depth;
@@ -137,10 +140,25 @@ void find_top_winning_seq(const std::vector<threat_t> & winning_seq, std::vector
   for (const threat_t & threat : winning_seq) {
     DEBUG_POLICY("Top seq(%c, %d): [%d, %d, %d: %s/%d]\n", 
       threat.point.i + 'A', threat.point.j, threat.winning, 
-      threat.final_winning, threat.min_winning_depth, t.match_pattern.c_str(), t.match_pattern_level);
+      threat.final_winning, threat.min_winning_depth, threat.match_pattern.c_str(), threat.match_pattern_level);
 
     if (threat.final_winning && threat.match_pattern_level >= top_level) {
       top_winning_seq.push_back(threat);
+      top_level = threat.match_pattern_level;
+    }
+  }
+}
+
+void find_top_threats_sorted(const std::vector<threat_t> & threats, std::vector<threat_t> & top_threats)
+{
+  int top_level = -INT_MAX;
+  for (const threat_t & threat : threats) {
+    DEBUG_POLICY("Top threat(%c, %d): [%d, %d, %d: %s/%d]\n", 
+      threat.point.i + 'A', threat.point.j, threat.winning, 
+      threat.final_winning, threat.min_winning_depth, threat.match_pattern.c_str(), threat.match_pattern_level);
+
+    if (threat.match_pattern_level >= top_level) {
+      top_threats.push_back(threat);
       top_level = threat.match_pattern_level;
     }
   }
@@ -209,28 +227,40 @@ int Policy::move_random(const State & state, std::vector<State> & next_states, i
 }
 
 int Policy::move_winning_seq(
-  const State & opponent_state, std::vector<threat_t> & opponent_threats,
-  const State & self_state, std::vector<threat_t> & self_threats,
+  const State & opponent_state, const std::vector<threat_t> & opponent_threats,
+  const State & self_state, const std::vector<threat_t> & self_threats,
   std::vector<move_t> & next_moves)
 {
-  LOG_POLICY("Agent %d: move_winning_seq\n", self_state.agent_id);
   int res = POLICY_FAIL;
 
   std::vector<threat_t> opponent_winning_seq;
   std::vector<threat_t> opponent_critical_winning_seq;
   LOG_POLICY("Agent %d winning seq\n", opponent_state.agent_id);
 
-  std::sort(opponent_threats.begin(), opponent_threats.end(), std::greater<threat_t>());
   find_winning_sequence_sorted(opponent_threats, opponent_winning_seq);
   find_critical_winning_seq(opponent_state, opponent_winning_seq, opponent_critical_winning_seq);
 
   std::vector<threat_t> self_winning_seq;
   LOG_POLICY("Agent %d winning seq\n", self_state.agent_id);
 
-  std::sort(self_threats.begin(), self_threats.end(), std::greater<threat_t>());
   find_winning_sequence_sorted(self_threats, self_winning_seq);
 
-  /* Find one step winning */
+  /* Compare winning seq depth, attack/defend by winning seq */
+#ifdef _OLD_BALANCE_POLICY
+  int opponent_min_winning_depth = (opponent_critical_winning_seq.empty()) ? INT_MAX : opponent_critical_winning_seq.front().min_winning_depth;
+  int self_min_winning_depth = (self_winning_seq.empty()) ? INT_MAX : self_winning_seq.front().min_winning_depth;
+
+  if (self_min_winning_depth <= opponent_min_winning_depth && !self_winning_seq.empty()) {
+    LOG_POLICY("Agent %d: attack winning\n", self_state.agent_id);
+    expand_threats_to_moves(self_winning_seq, self_state, next_moves);
+    res = POLICY_SUCCESS;
+  }
+  else if (!opponent_winning_seq.empty()) {
+    LOG_POLICY("Agent %d: defend winning (%d)\n", self_state.agent_id);
+    expand_threats_to_moves(opponent_critical_winning_seq, self_state, next_moves);
+    res = POLICY_SUCCESS;
+  }
+#else
   if (res != POLICY_SUCCESS) {
     int self_one_step_winning_index = find_one_step_winning(self_winning_seq);
     if (self_one_step_winning_index >= 0) {
@@ -247,22 +277,25 @@ int Policy::move_winning_seq(
     }
   }
 
-  /* Compare winning seq depth, attack/defend by winning seq */
   if (res != POLICY_SUCCESS) {
-    int opponent_min_winning_depth = (opponent_critical_winning_seq.empty()) ? INT_MAX : opponent_critical_winning_seq.front().min_winning_depth;
-    int self_min_winning_depth = (self_winning_seq.empty()) ? INT_MAX : self_winning_seq.front().min_winning_depth;
+    int self_top_level = (self_winning_seq.empty()) ? -INT_MAX : self_winning_seq.front().match_pattern_level;
+    int opponent_top_level = (opponent_critical_winning_seq.empty()) ? -INT_MAX : opponent_critical_winning_seq.front().match_pattern_level;
 
-    if (self_min_winning_depth <= opponent_min_winning_depth && !self_winning_seq.empty()) {
-      LOG_POLICY("Agent %d: attack winning\n", self_state.agent_id);
-      expand_threats_to_moves(self_winning_seq, self_state, next_moves);
+    if (self_top_level >= opponent_top_level && !self_winning_seq.empty()) {
+      std::vector<threat_t> top_winning_seq;
+      find_top_winning_seq(self_winning_seq, top_winning_seq);
+      expand_threats_to_moves(top_winning_seq, self_state, next_moves);
       res = POLICY_SUCCESS;
     }
-    else if (!opponent_winning_seq.empty()) {
-      LOG_POLICY("Agent %d: defend winning (%d)\n", self_state.agent_id);
+    else if (!opponent_critical_winning_seq.empty()) {
+      std::vector<threat_t> top_winning_seq;
+      find_top_winning_seq(opponent_critical_winning_seq, top_winning_seq);
       expand_threats_to_moves(opponent_critical_winning_seq, self_state, next_moves);
       res = POLICY_SUCCESS;
     }
   }
+
+#endif
 
   return res;
 }
@@ -294,6 +327,8 @@ int Policy::move_rapid(const State & opponent_state, std::vector<move_t> & next_
   Tss self_tss(self_state);
   self_tss.find_all_threats(self_state.position, self_threats, THREAT_LEVEL_5, THREAT_LEVEL_5, 1);
 
+  std::sort(opponent_threats.begin(), opponent_threats.end(), std::greater<threat_t>());
+  std::sort(self_threats.begin(), self_threats.end(), std::greater<threat_t>());
   res = move_winning_seq(opponent_state, opponent_threats, self_state, self_threats, next_moves);
 
   if (res != POLICY_SUCCESS) {
@@ -364,6 +399,8 @@ int Policy::move_defensive(const State & opponent_state, std::vector<std::pair<i
   Tss self_tss(self_state);
   self_tss.find_all_threats(self_state.position, self_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, max_depth);
 
+  std::sort(opponent_threats.begin(), opponent_threats.end(), std::greater<threat_t>());
+  std::sort(self_threats.begin(), self_threats.end(), std::greater<threat_t>());
   res = move_winning_seq(opponent_state, opponent_threats, self_state, self_threats, next_moves);
 
   if (res != POLICY_SUCCESS) {
@@ -411,12 +448,31 @@ int Policy::move_balance(const State & opponent_state, std::vector<std::pair<int
   Tss self_tss(self_state);
   self_tss.find_all_threats(self_state.position, self_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, max_depth);
 
+  std::sort(opponent_threats.begin(), opponent_threats.end(), std::greater<threat_t>());
+  std::sort(self_threats.begin(), self_threats.end(), std::greater<threat_t>());
   res = move_winning_seq(opponent_state, opponent_threats, self_state, self_threats, next_moves);
 
   if (res != POLICY_SUCCESS) {
     LOG_POLICY("Agent %d: balance move\n", self_state.agent_id);
+#if 0
     res = move_threats(self_state, opponent_threats, next_moves);
     res |= move_threats(self_state, self_threats, next_moves);
+#else
+    std::vector<threat_t> self_top_threats;
+    find_top_threats_sorted(self_threats, self_top_threats);
+
+    std::vector<threat_t> opponent_top_threats;
+    find_top_threats_sorted(opponent_threats, opponent_top_threats);
+
+    int self_top_level = (self_top_threats.empty()) ? -INT_MAX : self_top_threats.front().match_pattern_level;
+    int opponent_top_level = (opponent_top_threats.empty()) ? -INT_MAX : opponent_top_threats.front().match_pattern_level;
+    if (self_top_level >= opponent_top_level && !self_top_threats.empty()) {
+      res = move_threats(self_state, self_top_threats, next_moves);
+    }
+    else if (!opponent_top_threats.empty()) {
+      res = move_threats(self_state, opponent_top_threats, next_moves);
+    }
+#endif
   }
 
   if (res != POLICY_SUCCESS) {

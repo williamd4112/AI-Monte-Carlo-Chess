@@ -34,6 +34,7 @@ void find_critical_winning_seq(
     const State & opponent_state,
     const std::vector<threat_t> & opponent_winning_seq, std::vector<threat_t> & opponent_critical_winning_seq);
 void find_top_winning_seq(const std::vector<threat_t> & winning_seq, std::vector<threat_t> & top_winning_seq);
+void find_top_threats_sorted(const std::vector<threat_t> & threats, std::vector<threat_t> & top_threats);
 
 void expand_threat_to_states(const threat_t & threat, const State & root_state, std::vector<State> & states);
 void expand_threat_to_moves(const threat_t & threat, std::vector<move_t> & moves);
@@ -62,8 +63,8 @@ private:
   std::mt19937 m_random_gen;
 
   int move_winning_seq(
-    const State & opponent_state, std::vector<threat_t> & opponent_threats,
-    const State & self_state, std::vector<threat_t> & self_threats,
+    const State & opponent_state, const std::vector<threat_t> & opponent_threats,
+    const State & self_state, const std::vector<threat_t> & self_threats,
     std::vector<move_t> & next_moves);
   int move_when_no_threats(const State & self_state, std::vector<move_t> & next_moves);
   int move_when_no_threats(const State & self_state, std::vector<State> & next_states);

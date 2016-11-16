@@ -86,9 +86,14 @@ int main(int argc, char * argv[])
   State state(15, 15, WHITE);
   for (int i = 0; i < 15; i++) {
     for (int j = 0; j < 15; j++) {
-      int val;
-      in >> val;
-      state.position[i][j] = val;
+      char c;
+      in >> c;
+      if (c == '.')
+      state.position[i][j] = EMPTY;
+      if (c == 'O')
+      state.position[i][j] = BLACK;
+      if (c == 'X')
+      state.position[i][j] = WHITE;
     }
   }
 
