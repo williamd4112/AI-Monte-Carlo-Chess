@@ -93,7 +93,34 @@ TEST_CASE("MCTS cases", "[mcts]")
     validate(turn, str_board, expected_places);
   }
 
-  SECTION("Case 3: white should close opponent's four") {
+  SECTION("Case 3: black should create winning sequence") {
+    const char turn = mcts::BLACK;
+    const StrPosition str_board {
+      ".........",
+      "...ooo...",
+      "...xxx...",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+    };
+    const StrPosition expected_places {
+      ".........",
+      "..o...o..",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+      ".........",
+    };
+    validate(turn, str_board, expected_places);
+  }
+
+  SECTION("Case 4: white should close opponent's four") {
     const char turn = mcts::WHITE;
     const StrPosition str_board {
       ".........",
@@ -120,7 +147,7 @@ TEST_CASE("MCTS cases", "[mcts]")
     validate(turn, str_board, expected_places);
   }
 
-  SECTION("Case 4: white should win") {
+  SECTION("Case 5: white should win") {
     const char turn = mcts::WHITE;
     const StrPosition str_board {
       ".........",
@@ -147,7 +174,7 @@ TEST_CASE("MCTS cases", "[mcts]")
     validate(turn, str_board, expected_places);
   }
 
-  SECTION("Case 5: black should block opponent") {
+  SECTION("Case 6: black should block opponent") {
     const char turn = mcts::BLACK;
     const StrPosition str_board {
       "...............",
@@ -186,7 +213,7 @@ TEST_CASE("MCTS cases", "[mcts]")
     validate(turn, str_board, expected_places);
   }
 
-  SECTION("Case 6: black should win") {
+  SECTION("Case 7: black should win") {
     const char turn = mcts::BLACK;
     const StrPosition str_board {
       "...............",
@@ -225,11 +252,11 @@ TEST_CASE("MCTS cases", "[mcts]")
     validate(turn, str_board, expected_places);
   }
 
-  SECTION("Case 7: black should create winning sequence") {
+  SECTION("Case 8: black should create winning sequence") {
     const char turn = mcts::BLACK;
     const StrPosition str_board {
       "...............",
-      "...............",
+      "...............",  
       "...............",
       "...............",
       "...............",
@@ -250,8 +277,8 @@ TEST_CASE("MCTS cases", "[mcts]")
       "...............",
       "...............",
       "...............",
-      "......o........",
       "...............",
+      "...o...........",
       "...............",
       "...............",
       "...............",
@@ -264,7 +291,7 @@ TEST_CASE("MCTS cases", "[mcts]")
     validate(turn, str_board, expected_places);
   }
 
-  SECTION("Case 8: black should create winning sequence") {
+  SECTION("Case 9: black should create winning sequence") {
     const char turn = mcts::BLACK;
     const StrPosition str_board {
       "...............",
@@ -273,7 +300,7 @@ TEST_CASE("MCTS cases", "[mcts]")
       "...............",
       "...............",
       "........o......",
-      ".......x.......",
+      "......x........",
       "...ooxoox.x....",
       ".....ooxx......",
       "......oox......",
@@ -290,9 +317,9 @@ TEST_CASE("MCTS cases", "[mcts]")
       "...............",
       "...............",
       "...............",
+      ".......o.......",
       "...............",
       "...............",
-      ".........o.....",
       "...............",
       "...............",
       "...............",
@@ -303,7 +330,7 @@ TEST_CASE("MCTS cases", "[mcts]")
     validate(turn, str_board, expected_places);
   }
 
-  SECTION("Case 9: black should create winning sequence") {
+  SECTION("Case 10: black should struggle to defend") {
     const char turn = mcts::BLACK;
     const StrPosition str_board {
       "...............",
@@ -332,7 +359,46 @@ TEST_CASE("MCTS cases", "[mcts]")
       "...............",
       "...............",
       "...............",
+      "....o..........",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
+    };
+    validate(turn, str_board, expected_places);
+  }
+  
+  SECTION("Case 11: black should create winning sequence first") {
+    const char turn = mcts::BLACK;
+    const StrPosition str_board {
+      ".x.ox..oo......",
+      "ooo............",
+      "..xoo..........",
+      "...............",
+      "..o............",
+      ".x.............",
+      "...............",
+      "..x............",
+      ".x.x...........",
+      "..x............",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
+    };
+    const StrPosition expected_places {
+      "......o........",
       "...o...........",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
       "...............",
       "...............",
       "...............",

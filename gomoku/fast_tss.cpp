@@ -3,6 +3,8 @@
 namespace mcts
 {
 
+#define FAST_TSS_MAX_DEPENDENT_RANGE 6
+
 mcts::Tss::Tss(const mcts::State & state):
   m_state(state)
 {
@@ -139,7 +141,7 @@ std::pair<bool, int> Tss::find_all_threats_at_gain_square_r(
     int i = row;
     int j = col;
     int lose = 1;
-    for (int k = 0; k < 5 && lose >= 0; k++) {
+    for (int k = 0; k < FAST_TSS_MAX_DEPENDENT_RANGE && lose >= 0; k++) {
       if (!in_boundary(i, j, w, h)) {
         lose = -1;
         break;
@@ -150,11 +152,12 @@ std::pair<bool, int> Tss::find_all_threats_at_gain_square_r(
       }
 
       if (position[i][j] == EMPTY) {
+
         position[i][j] = agent_id;
         threat_t child_threat(point_t{i, j}, false);
         std::pair<int, int> child_match = is_gain_square(child_threat, position, begin, end, dir_mod, agent_id);
 
-        DEBUG_FAST_TSS("Move from gain(%d, %d) to (%d, %d)[0%x]; Depth = %d; dir(%d, %d: %d)\n", row, col, i, j, position[i][j], depth, dr, dc, sign);
+        DEBUG_FAST_TSS("Move from gain(%d, %d) to (%d, %d)[0%x]; Depth = %d/%d; dir(%d, %d: %d)\n", row, col, i, j, position[i][j], depth, max_depth, dr, dc, sign);
         DEBUG_FAST_TSS_POSITION(position);
 
         if (child_match.second != MISMATCH) {
@@ -163,6 +166,7 @@ std::pair<bool, int> Tss::find_all_threats_at_gain_square_r(
           const char * pattern = g_threat_types[match_index];
           const int pattern_len = g_threat_types_len[match_index];
           child_threat.match_pattern = pattern;
+          child_threat.match_pattern_level = g_threat_pattern_levels[match_index];
           DEBUG_FAST_TSS("Match from gain pattern[%d] %s (at %d)\n", match_index, pattern, match_pos);
           set_cost_squares(position, i, j, pattern, pattern_len, match_pos, opponent_id, dir_mod);
           LOG_FAST_TSS("Gain square from gain (%d, %d) [depth = %d]; Dependent (%d, %d)\n", i, j, depth, dependent_threat.point.i, dependent_threat.point.j);
@@ -179,6 +183,7 @@ std::pair<bool, int> Tss::find_all_threats_at_gain_square_r(
           set_cost_squares(position, i, j, pattern, pattern_len, match_pos, EMPTY, dir_mod);
           threats.push_back(child_threat);
           lose--;
+          DEBUG_FAST_TSS("No remain Match from gain pattern[%d] %s (at %d)\n", match_index, pattern, match_pos);
         }
         position[i][j] = EMPTY;
       }
@@ -232,6 +237,8 @@ std::pair<bool, int> Tss::find_all_threats_r(
             const char * pattern = g_threat_types[match_index];
             const int pattern_len = g_threat_types_len[match_index];
             child_threat.match_pattern = pattern;
+            child_threat.match_pattern_level = g_threat_pattern_levels[match_index];
+
             DEBUG_FAST_TSS("Match pattern %s (at %d)\n", pattern, match_pos);
             set_cost_squares(position, i, j, pattern, pattern_len, match_pos, opponent_id, dir);
             LOG_FAST_TSS("Gain square (%d, %d) [depth = %d]; Dependent (%d, %d)\n", i, j, depth, dependent_threat.point.i, dependent_threat.point.j);

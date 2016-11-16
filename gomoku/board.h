@@ -65,12 +65,14 @@ struct threat_t {
   int min_winning_depth;
 
   std::string match_pattern;
+  int match_pattern_level;
 
   threat_t(point_t _point, bool _winning):
     point(_point),
     winning(_winning),
     final_winning(false),
-    min_winning_depth(INT_MAX)
+    min_winning_depth(INT_MAX),
+    match_pattern_level(0)
   {
 
   }
@@ -78,7 +80,8 @@ struct threat_t {
   threat_t():
     winning(false),
     final_winning(false),
-    min_winning_depth(INT_MAX)
+    min_winning_depth(INT_MAX),
+    match_pattern_level(0)
   {
 
   }
@@ -89,7 +92,8 @@ struct threat_t {
     winning(copy.winning),
     final_winning(copy.final_winning),
     min_winning_depth(copy.min_winning_depth),
-    match_pattern(copy.match_pattern)
+    match_pattern(copy.match_pattern),
+    match_pattern_level(copy.match_pattern_level)
   {
 
   }
@@ -105,6 +109,8 @@ struct threat_t {
       return true;
     } else if (!a.final_winning && b.final_winning) {
       return false;
+    } else if (a.match_pattern_level > b.match_pattern_level) {
+      return true;
     } else {
       return a.min_winning_depth < b.min_winning_depth;
     }
@@ -113,7 +119,7 @@ struct threat_t {
   friend std::ostream & operator <<(std::ostream & os, const threat_t & t)
   {
     return os << "(" << (char)(t.point.i + 'A') << ", " << t.point.j << ") = "
-      << "[" << t.winning << ", " << t.final_winning << ", " << t.min_winning_depth  << "] / " << t.match_pattern;
+      << "[" << t.winning << ", " << t.final_winning << ", " << t.min_winning_depth  << "] / " << t.match_pattern  << "/" << t.match_pattern_level;
   }
 
 private:

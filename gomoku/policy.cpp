@@ -51,6 +51,11 @@ void expand_threat_to_states(const threat_t & threat, const State & root_state, 
   states.push_back(new_state);
 }
 
+void expand_threat_to_moves(const threat_t & threat, std::vector<move_t> & moves)
+{
+  moves.push_back(move_t(threat.point.i, threat.point.j));
+}
+
 void expand_threats_to_states(const std::vector<threat_t> & threats, const State & root_state, std::vector<State> & states)
 {
   for (const threat_t & threat : threats) {
@@ -122,6 +127,21 @@ void find_critical_winning_seq(
     }
     else {
       break;
+    }
+  }
+}
+
+void find_top_winning_seq(const std::vector<threat_t> & winning_seq, std::vector<threat_t> & top_winning_seq)
+{
+  int top_level = -INT_MAX;
+  for (const threat_t & threat : winning_seq) {
+    DEBUG_POLICY("Top seq(%c, %d): [%d, %d, %d: %s/%d]\n", 
+      threat.point.i + 'A', threat.point.j, threat.winning, 
+      threat.final_winning, threat.min_winning_depth, t.match_pattern.c_str(), t.match_pattern_level);
+
+    if (threat.final_winning && threat.match_pattern_level >= top_level) {
+      top_winning_seq.push_back(threat);
+      top_level = threat.match_pattern_level;
     }
   }
 }
@@ -210,6 +230,7 @@ int Policy::move_winning_seq(
   find_winning_sequence_sorted(self_threats, self_winning_seq);
 
   /* Compare winning seq depth, attack/defend by winning seq */
+#ifdef _OLD_BALANCE_POLICY
   int opponent_min_winning_depth = (opponent_critical_winning_seq.empty()) ? INT_MAX : opponent_critical_winning_seq.front().min_winning_depth;
   int self_min_winning_depth = (self_winning_seq.empty()) ? INT_MAX : self_winning_seq.front().min_winning_depth;
 
@@ -223,6 +244,42 @@ int Policy::move_winning_seq(
     expand_threats_to_moves(opponent_critical_winning_seq, self_state, next_moves);
     res = POLICY_SUCCESS;
   }
+#else
+  if (res != POLICY_SUCCESS) {
+    int self_one_step_winning_index = find_one_step_winning(self_winning_seq);
+    if (self_one_step_winning_index >= 0) {
+      expand_threat_to_moves(self_winning_seq[self_one_step_winning_index], next_moves);
+      res = POLICY_SUCCESS;
+    }
+  }
+
+  if (res != POLICY_SUCCESS) {
+    int opponent_one_step_winning_index = find_one_step_winning(opponent_critical_winning_seq);
+    if (opponent_one_step_winning_index >= 0) {
+      expand_threat_to_moves(opponent_critical_winning_seq[opponent_one_step_winning_index], next_moves);
+      res = POLICY_SUCCESS;
+    }
+  }
+
+  if (res != POLICY_SUCCESS) {
+    int self_top_level = (self_winning_seq.empty()) ? -INT_MAX : self_winning_seq.front().match_pattern_level;
+    int opponent_top_level = (opponent_critical_winning_seq.empty()) ? -INT_MAX : opponent_critical_winning_seq.front().match_pattern_level;
+
+    if (self_top_level >= opponent_top_level && !self_winning_seq.empty()) {
+      std::vector<threat_t> top_winning_seq;
+      find_top_winning_seq(self_winning_seq, top_winning_seq);
+      expand_threats_to_moves(top_winning_seq, self_state, next_moves);
+      res = POLICY_SUCCESS;
+    }
+    else if (!opponent_critical_winning_seq.empty()) {
+      std::vector<threat_t> top_winning_seq;
+      find_top_winning_seq(opponent_critical_winning_seq, top_winning_seq);
+      expand_threats_to_moves(opponent_critical_winning_seq, self_state, next_moves);
+      res = POLICY_SUCCESS;
+    }
+  }
+
+#endif
 
   return res;
 }

@@ -14,10 +14,13 @@ using namespace mcts;
 int main(int argc, char * argv[])
 {
   int agent_id = (argv[2][0] == 'b') ? mcts::BLACK : mcts::WHITE;
+  int w = atoi(argv[3]);
+  int h = atoi(argv[4]);
+
   ifstream in(argv[1]);
-  mcts::State state(15, 15, agent_id);
-  for (int i = 0; i < 15; i++) {
-    for (int j = 0; j < 15; j++) {
+  mcts::State state(w, h, agent_id);
+  for (int i = 0; i < h; i++) {
+    for (int j = 0; j < w; j++) {
       char c;
       in >> c;
       if (c == 'O')
@@ -28,11 +31,17 @@ int main(int argc, char * argv[])
         state.position[i][j] = mcts::EMPTY;
     }
   }
+  cout << state << endl;
 
   mcts::Tss tss(state);
   std::vector<mcts::threat_t> threats;
-  tss.find_all_threats(state.position, threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 4);
+  tss.find_all_threats(state.position, threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 12);
   sort(threats.begin(), threats.end(), greater<mcts::threat_t>());
+
+  cout << "original" << endl;
+  for (auto t : threats) {
+    cout << t << endl;
+  }
 
   std::vector<mcts::threat_t> seq;
   int min_depth = 0x7fffffff;
@@ -44,6 +53,7 @@ int main(int argc, char * argv[])
       seq.push_back(t);
     }
   }
+  std::cout << "-----" << endl;
   std::vector<threat_t> new_threats;
   find_critical_winning_seq(state, seq, new_threats);
 

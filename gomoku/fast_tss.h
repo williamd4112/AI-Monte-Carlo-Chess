@@ -90,6 +90,29 @@ const static int g_threat_types_len[] = {
   sizeof  "____o"  - 1  // 19
 };
 
+const static int g_threat_pattern_levels[] = {
+  5,
+  4,
+  4,
+  4,
+  4,
+  4,
+  3,
+  3,
+  3,
+  3,
+  3,
+  2,
+  2,
+  2,
+  2,
+  1,
+  1,
+  1,
+  1,
+  1
+};
+
 const static int g_threat_levels[][2] = {
     /* Level 1 */
     {19, 15},

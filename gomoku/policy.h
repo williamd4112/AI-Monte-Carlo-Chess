@@ -13,8 +13,8 @@
 #include "state.h"
 
 #define ONE_STEP_WIN 1
-#define DEFAULT_TSS_MAX_DEPTH 255
-#define OPPONENT_TSS_MAX_DEPTH 255
+#define DEFAULT_TSS_MAX_DEPTH 12
+#define OPPONENT_TSS_MAX_DEPTH 12
 #define POLICY_SUCCESS 0x1
 #define POLICY_FAIL 0x0
 
@@ -33,8 +33,10 @@ void find_winning_sequence_sorted(const State & opponent_state, const std::vecto
 void find_critical_winning_seq(
     const State & opponent_state,
     const std::vector<threat_t> & opponent_winning_seq, std::vector<threat_t> & opponent_critical_winning_seq);
+void find_top_winning_seq(const std::vector<threat_t> & winning_seq, std::vector<threat_t> & top_winning_seq);
 
 void expand_threat_to_states(const threat_t & threat, const State & root_state, std::vector<State> & states);
+void expand_threat_to_moves(const threat_t & threat, std::vector<move_t> & moves);
 void expand_threats_to_states(const std::vector<threat_t> & threats, const State & root_state, std::vector<State> & states);
 void expand_threats_to_moves(const std::vector<threat_t> & threats, const State & root_state, std::vector<move_t> & moves);
 void expand_moves_to_states(const std::vector<move_t> & moves, const State & root_state, std::vector<State> & states);
