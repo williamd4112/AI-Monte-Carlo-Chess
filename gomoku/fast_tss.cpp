@@ -97,12 +97,12 @@ void Tss::apply_match_to_threat(
     res.first |= child_res.first;
     res.second = std::min(res.second, child_res.second);
     threat.final_winning |= child_res.first;
-    threat.min_winning_depth = child_res.second;
+    threat.min_winning_depth = std::min(threat.min_winning_depth, child_res.second);
   } else {
     res.first = true;
     res.second = depth;
     threat.winning = threat.final_winning = true;
-    threat.min_winning_depth = depth;
+    threat.min_winning_depth = std::min(threat.min_winning_depth, depth);
     LOG_FAST_TSS("Winning sequence found [depth = %d]\n", depth);
   }
 }
@@ -152,7 +152,6 @@ std::pair<bool, int> Tss::find_all_threats_at_gain_square_r(
       }
 
       if (position[i][j] == EMPTY) {
-
         position[i][j] = agent_id;
         threat_t child_threat(point_t{i, j}, false);
         std::pair<int, int> child_match = is_gain_square(child_threat, position, begin, end, dir_mod, agent_id);
@@ -165,8 +164,12 @@ std::pair<bool, int> Tss::find_all_threats_at_gain_square_r(
           const int match_pos = child_match.second;
           const char * pattern = g_threat_types[match_index];
           const int pattern_len = g_threat_types_len[match_index];
-          child_threat.match_pattern = pattern;
-          child_threat.match_pattern_level = g_threat_pattern_levels[match_index];
+          
+          if (g_threat_pattern_levels[match_index] > child_threat.match_pattern_level) {
+            child_threat.match_pattern = pattern;
+            child_threat.match_pattern_level = g_threat_pattern_levels[match_index];
+          }
+
           DEBUG_FAST_TSS("Match from gain pattern[%d] %s (at %d)\n", match_index, pattern, match_pos);
           set_cost_squares(position, i, j, pattern, pattern_len, match_pos, opponent_id, dir_mod);
           LOG_FAST_TSS("Gain square from gain (%d, %d) [depth = %d]; Dependent (%d, %d)\n", i, j, depth, dependent_threat.point.i, dependent_threat.point.j);
@@ -236,8 +239,11 @@ std::pair<bool, int> Tss::find_all_threats_r(
             const int match_pos = match.second;
             const char * pattern = g_threat_types[match_index];
             const int pattern_len = g_threat_types_len[match_index];
-            child_threat.match_pattern = pattern;
-            child_threat.match_pattern_level = g_threat_pattern_levels[match_index];
+            
+            if (g_threat_pattern_levels[match_index] > child_threat.match_pattern_level) {
+              child_threat.match_pattern_level = g_threat_pattern_levels[match_index];
+              child_threat.match_pattern = pattern;
+            }
 
             DEBUG_FAST_TSS("Match pattern %s (at %d)\n", pattern, match_pos);
             set_cost_squares(position, i, j, pattern, pattern_len, match_pos, opponent_id, dir);
@@ -252,12 +258,13 @@ std::pair<bool, int> Tss::find_all_threats_r(
               begin, end,
               depth, max_depth);
 
-            set_cost_squares(position, i, j, pattern, pattern_len, match_pos, EMPTY, dir);
-            threats.push_back(child_threat);
-            //break;
+            set_cost_squares(position, i, j, pattern, pattern_len, match_pos, EMPTY, dir);    
           }
        }
-        position[i][j] = EMPTY;
+       position[i][j] = EMPTY;
+       if (child_threat.match_pattern_level > 0) {
+        threats.push_back(child_threat);
+       }
       }
     }
   }
