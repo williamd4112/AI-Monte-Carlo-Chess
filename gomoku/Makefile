@@ -8,6 +8,9 @@ all: $(OBJS)
 	echo $(OPT)
 	g++ $(CFLAGS) main.cpp $(OBJS) -o mcts-gomoku -std=c++11
 
+test_mcts_case: $(OBJS)
+	g++ $(CFLAGS) test/test_mcts_cases.cpp $(OBJS) -o test_mcts_cases -std=c++11
+
 debug: $(OBJS)
 	g++ $(DBG) $(CFLAGS) main.cpp $(OBJS) -o mcts-gomoku-dbg -std=c++11
 
@@ -21,7 +24,7 @@ test_policy: fast_tss.o pattern.o policy.o util.o
 	$(CC) $(CFLAGS) -O3 -D_DEBUG_POLICY test_policy.cpp $< -o $@
 
 test_fast_tss: $(OBJS)
-	$(CC) $(CFLAGS)-O3 -D_LOG_FAST_TSS test_fast_tss.cpp $(OBJS) -o $@
+	$(CC) $(CFLAGS) -O3 -D_LOG_FAST_TSS test_fast_tss.cpp $(OBJS) -o $@
 
 test_tss: test_tss.cpp tss.h pattern.h
 	$(CC) $(CFLAGS) -O3 -DDFS_TSS test_tss.cpp -o $@

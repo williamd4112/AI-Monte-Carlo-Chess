@@ -242,55 +242,7 @@ std::pair<bool, int> Tss::find_all_threats_r(
             threats.push_back(child_threat);
             break;
           }
-
-#ifdef _OLD_FAST_TSS
-          if (match.second != MISMATCH) {
-
-            const char * pattern = g_threat_types[match.first];
-            int pattern_len = strlen(pattern);
-            int match_pos = match.second;
-            int begin_row = i - dr * match_pos,
-                begin_col = j - dc * match_pos,
-                end_row = i + dr * (pattern_len - match_pos - 1),
-                end_col = j + dc * (pattern_len - match_pos - 1);
-
-            bool dependency = (depth == 0);
-            if (!dependency) {
-              dependency = is_dependent(position, begin_row, begin_col, end_row, end_col, dr, dc,
-                                        pattern, match_pos, pattern_len, dependent_square);
-            }
-
-            if (dependency) {
-              DEBUG_FAST_TSS("Match pattern %s (%d)\n", pattern, match.second);
-
-              set_cost_squares(position, pattern, pattern_len, opponent_id, begin_row, begin_col, end_row, end_col, dr, dc);
-
-              LOG_FAST_TSS("Gain square (%d, %d) [depth = %d]; Dependent (%d, %d)\n", i, j, depth, dependent_threat.point.i, dependent_threat.point.j);
-              LOG_FAST_TSS_POSITION(position);
-
-              /* Cut when winning */
-              if (match.first != 0) {
-                std::pair<int, int> child_res = find_all_threats_r(position, threat.children, begin, end, depth + 1, max_depth, threat);
-                res.first |= child_res.first;
-                res.second = std::min(res.second, child_res.second);
-
-                threat.final_winning |= child_res.first;
-                threat.min_winning_depth = child_res.second;
-              } else {
-                res.first = true;
-                res.second = depth;
-                threat.winning = threat.final_winning = true;
-                threat.min_winning_depth = depth;
-
-                LOG_FAST_TSS("Winning sequence found [depth = %d]\n", depth);
-              }
-              unset_cost_squares(position, pattern, pattern_len, opponent_id, begin_row, begin_col, end_row, end_col, dr, dc);
-              threats.push_back(threat);
-              break;
-            }
-          }
-#endif
-        }
+       }
         position[i][j] = EMPTY;
       }
     }
