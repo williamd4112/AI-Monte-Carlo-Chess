@@ -154,10 +154,10 @@ TEST_CASE("MCTS cases", "[mcts]")
       "...............",
       "...............",
       "...............",
-      "......o........",
-      "......o........",
-      "......o........",
-      ".......xxxo....",
+      "......x........",
+      "......x........",
+      "......x........",
+      ".......ooox....",
       "...............",
       "...............",
       "...............",
@@ -186,21 +186,21 @@ TEST_CASE("MCTS cases", "[mcts]")
     validate(turn, str_board, expected_places);
   }
 
-  SECTION("Case 6: white should win") {
-    const char turn = mcts::WHITE;
+  SECTION("Case 6: black should win") {
+    const char turn = mcts::BLACK;
     const StrPosition str_board {
       "...............",
       "...............",
       "...............",
       "...............",
       "...............",
-      "..o...x.x......",
-      "...x..oo.......",
-      "...xxoxxo.o....",
-      "...x.xxoo......",
-      "...xoxxxo......",
-      "...oo.oox......",
-      ".......o.o.....",
+      "..x...o.o......",
+      "...o..xx.......",
+      "...ooxoox.x....",
+      "...o.ooxx......",
+      "...oxooox......",
+      "...xx.xxo......",
+      ".......x.x.....",
       "...............",
       "...............",
       "...............",
@@ -211,7 +211,7 @@ TEST_CASE("MCTS cases", "[mcts]")
       "...............",
       "...............",
       "...............",
-      "...x...........",
+      "...o...........",
       "...............",
       "...............",
       "...............",
@@ -233,13 +233,13 @@ TEST_CASE("MCTS cases", "[mcts]")
       "...............",
       "...............",
       "...............",
-      "........x......",
-      ".......o.......",
-      "...xxoxxo.o....",
-      ".....xxoo......",
-      "...xoxxxo......",
-      "....o.oox......",
-      ".......o.o.....",
+      "........o......",
+      ".......x.......",
+      "...ooxoox.x....",
+      ".....ooxx......",
+      "...oxooox......",
+      "....x.xxo......",
+      ".......x.x.....",
       "...............",
       "...............",
       "...............",
@@ -272,13 +272,13 @@ TEST_CASE("MCTS cases", "[mcts]")
       "...............",
       "...............",
       "...............",
-      "........x......",
-      ".......o.......",
-      "...xxoxxo.o....",
-      ".....xxoo......",
-      "......xxo......",
+      "........o......",
+      ".......x.......",
+      "...ooxoox.x....",
+      ".....ooxx......",
       "......oox......",
-      ".......o.o.....",
+      "......xxo......",
+      ".......x.x.....",
       "...............",
       "...............",
       "...............",
@@ -311,13 +311,13 @@ TEST_CASE("MCTS cases", "[mcts]")
       "...............",
       "...............",
       "...............",
-      "........o......",
-      ".......xx......",
-      "...ooxoox.o....",
-      ".....ooxx......",
-      ".....ooox......",
-      "...o..xxo......",
-      ".......x.x.....",
+      "........x......",
+      ".......oo......",
+      "...xxoxxo.x....",
+      ".....xxoo......",
+      ".....xxxo......",
+      "...x..oox......",
+      ".......o.o.....",
       "...............",
       "...............",
       "...............",
@@ -350,9 +350,9 @@ void validate(const char& turn, const StrPosition& str_board,
   const int height = str_board.size();
   const int width = str_board[0].length();
   Position pos_board = Position(height, Row(width, EMPTY));
-  Position pos_expecteds = Position(height, Row(width, EMPTY));
+  Position pos_expected = Position(height, Row(width, EMPTY));
   str_2_position(str_board, pos_board);
-  str_2_position(expected_places, pos_expecteds);
+  str_2_position(expected_places, pos_expected);
 
   Timer timer(kMaxDuration, kMaxIterationCount);
   MCTS mcts(&timer, kExplore, kVerbose);
@@ -361,8 +361,8 @@ void validate(const char& turn, const StrPosition& str_board,
   mcts.run(root_state, result_state);
   point_t point;
   find_position_diff(pos_board, result_state.position, point);
-  if (pos_expecteds[point.j][point.i] != turn) {
+  if (pos_expected[point.j][point.i] != turn) {
     std::cerr << "AI placed (" << point.j << ", " << point.i << ")" << '\n';
   }
-  REQUIRE(pos_expecteds[point.j][point.i] == turn);
+  REQUIRE(pos_expected[point.j][point.i] == turn);
 }
