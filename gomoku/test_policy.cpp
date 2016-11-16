@@ -47,7 +47,7 @@ State run(const State & state, bool is_cpu, bool * is_over)
 
     if (is_cpu) {
       std::vector<State> next_states;
-      int res = policy.move_defensive(state, next_states);
+      int res = policy.move_balance(state, next_states);
       if (res == POLICY_FAIL) {
           *is_over = true;
           return state;
