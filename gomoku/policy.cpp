@@ -85,6 +85,7 @@ void find_critical_winning_seq(
   }
 
   int self_agent_id = opponent_state.agent_id ^ 1;
+
   std::vector<threat_t> candidate_winning_seq(opponent_winning_seq.size());
   std::pair<int, int> remain_winning_seqs[opponent_winning_seq.size()];
 
@@ -100,25 +101,15 @@ void find_critical_winning_seq(
       tss.find_all_threats_at(threat, new_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 4);
     }
 
-    bool is_no_winning_seq = true;
     int remain_winning_seq = 0;
-    std::cout << "After critical filter " << t  << std::endl;
     for (auto & threat : new_threats) {
-      std::cout << '\t' << threat << std::endl;
       if (threat.final_winning) {
-        is_no_winning_seq = false;
         remain_winning_seq++;
       }
     }
     remain_winning_seqs[i] = std::pair<int, int>(remain_winning_seq, i);
 
-    if (is_no_winning_seq) {
-      opponent_critical_winning_seq.push_back(t);
-      return;
-    }
-    else {
-      candidate_winning_seq.push_back(t);
-    }
+    candidate_winning_seq.push_back(t);
   }
 
   std::sort(remain_winning_seqs, remain_winning_seqs + opponent_winning_seq.size());
@@ -266,20 +257,7 @@ int Policy::move_rapid(const State & opponent_state, std::vector<move_t> & next_
   res = move_winning_seq(opponent_state, opponent_threats, self_state, self_threats, next_moves);
 
   if (res != POLICY_SUCCESS) {
-    if (res != POLICY_SUCCESS) {
-      DEBUG_POLICY("Agent %d: move middle\n", self_state.agent_id);
-      res = move_middle(self_state, next_moves);
-    }
-
-    if (res != POLICY_SUCCESS) {
-      DEBUG_POLICY("Agent %d: move approach\n", self_state.agent_id);
-      res = move_approach(self_state, next_moves);
-    }
-
-    if (res != POLICY_SUCCESS) {
-      DEBUG_POLICY("Agent %d: move random\n", self_state.agent_id);
-      res = move_random(self_state, next_moves, max_random_moves);
-    }
+    res = move_when_no_threats(self_state, next_moves);
   }
 
   DEBUG_POLICY("Policy rapid result = %d; # states = %d\n",res, next_moves.size());
