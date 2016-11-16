@@ -11,7 +11,7 @@ std::ostream & operator << (std::ostream & os, std::vector<threat_t> & threats)
   return os;
 }
 
-static int find_one_step_winning(const std::vector<threat_t> & threats)
+int find_one_step_winning(const std::vector<threat_t> & threats)
 {
   for (int i = 0; i < (int)threats.size(); i++) {
     if (threats[i].winning) {
@@ -21,7 +21,7 @@ static int find_one_step_winning(const std::vector<threat_t> & threats)
   return -1;
 }
 
-static void find_winning_sequence(const std::vector<threat_t> & threats, std::vector<threat_t> & seq)
+void find_winning_sequence(const std::vector<threat_t> & threats, std::vector<threat_t> & seq)
 {
   for (const threat_t & threat : threats) {
     DEBUG_POLICY("Threat(%c, %d): [%d, %d, %d]\n", threat.point.i + 'A', threat.point.j, threat.winning, threat.final_winning, threat.min_winning_depth);
@@ -31,7 +31,7 @@ static void find_winning_sequence(const std::vector<threat_t> & threats, std::ve
   }
 }
 
-static void find_winning_sequence_sorted(const std::vector<threat_t> & threats, std::vector<threat_t> & seq)
+void find_winning_sequence_sorted(const std::vector<threat_t> & threats, std::vector<threat_t> & seq)
 {
   int min_depth = INT_MAX;
   for (const threat_t & threat : threats) {
@@ -43,7 +43,7 @@ static void find_winning_sequence_sorted(const std::vector<threat_t> & threats, 
   }
 }
 
-static void expand_threat_to_states(const threat_t & threat, const State & root_state, std::vector<State> & states)
+void expand_threat_to_states(const threat_t & threat, const State & root_state, std::vector<State> & states)
 {
   const point_t gain = threat.point;
   State new_state(root_state);
@@ -51,14 +51,14 @@ static void expand_threat_to_states(const threat_t & threat, const State & root_
   states.push_back(new_state);
 }
 
-static void expand_threats_to_states(const std::vector<threat_t> & threats, const State & root_state, std::vector<State> & states)
+void expand_threats_to_states(const std::vector<threat_t> & threats, const State & root_state, std::vector<State> & states)
 {
   for (const threat_t & threat : threats) {
     expand_threat_to_states(threat, root_state, states);
   }
 }
 
-static void expand_threats_to_moves(const std::vector<threat_t> & threats, const State & root_state, std::vector<move_t> & moves)
+void expand_threats_to_moves(const std::vector<threat_t> & threats, const State & root_state, std::vector<move_t> & moves)
 {
   for (const auto & threat : threats) {
     const point_t & gain = threat.point;
@@ -66,13 +66,72 @@ static void expand_threats_to_moves(const std::vector<threat_t> & threats, const
   }
 }
 
-static void expand_moves_to_states(const std::vector<move_t> & moves, const State & root_state, std::vector<State> & states)
+void expand_moves_to_states(const std::vector<move_t> & moves, const State & root_state, std::vector<State> & states)
 {
   int agent_id = root_state.agent_id;
   for (const auto & move : moves) {
     State new_state(root_state);
     new_state.position[move.first][move.second] = agent_id;
     states.push_back(new_state);
+  }
+}
+
+void find_critical_winning_seq(
+    const State & opponent_state,
+    const std::vector<threat_t> & opponent_winning_seq, std::vector<threat_t> & opponent_critical_winning_seq)
+{
+  if (opponent_winning_seq.empty()) {
+    return;
+  }
+
+  int self_agent_id = opponent_state.agent_id ^ 1;
+  std::vector<threat_t> candidate_winning_seq(opponent_winning_seq.size());
+  std::pair<int, int> remain_winning_seqs[opponent_winning_seq.size()];
+
+  for (int i = 0; i < (int) opponent_winning_seq.size(); i++) {
+    const threat_t & t = opponent_winning_seq[i];
+
+    State new_state(opponent_state);
+    new_state.position[t.point.i][t.point.j] = self_agent_id;
+
+    Tss tss(new_state);
+    std::vector<threat_t> new_threats;
+    for (auto & threat : opponent_winning_seq) {
+      tss.find_all_threats_at(threat, new_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 4);
+    }
+
+    bool is_no_winning_seq = true;
+    int remain_winning_seq = 0;
+    std::cout << "After critical filter " << t  << std::endl;
+    for (auto & threat : new_threats) {
+      std::cout << '\t' << threat << std::endl;
+      if (threat.final_winning) {
+        is_no_winning_seq = false;
+        remain_winning_seq++;
+      }
+    }
+    remain_winning_seqs[i] = std::pair<int, int>(remain_winning_seq, i);
+
+    if (is_no_winning_seq) {
+      opponent_critical_winning_seq.push_back(t);
+      return;
+    }
+    else {
+      candidate_winning_seq.push_back(t);
+    }
+  }
+
+  std::sort(remain_winning_seqs, remain_winning_seqs + opponent_winning_seq.size());
+
+  int min_remain = INT_MAX;
+  for (auto & pair : remain_winning_seqs) {
+    if (pair.first <= min_remain) {
+      min_remain = pair.first;
+      opponent_critical_winning_seq.push_back(opponent_winning_seq[pair.second]);
+    }
+    else {
+      break;
+    }
   }
 }
 
@@ -146,10 +205,12 @@ int Policy::move_winning_seq(
   int res = POLICY_FAIL;
 
   std::vector<threat_t> opponent_winning_seq;
+  std::vector<threat_t> opponent_critical_winning_seq;
   LOG_POLICY("Agent %d winning seq\n", opponent_state.agent_id);
 
   std::sort(opponent_threats.begin(), opponent_threats.end(), std::greater<threat_t>());
   find_winning_sequence_sorted(opponent_threats, opponent_winning_seq);
+  find_critical_winning_seq(opponent_state, opponent_winning_seq, opponent_critical_winning_seq);
 
   std::vector<threat_t> self_winning_seq;
   LOG_POLICY("Agent %d winning seq\n", self_state.agent_id);
@@ -158,7 +219,7 @@ int Policy::move_winning_seq(
   find_winning_sequence_sorted(self_threats, self_winning_seq);
 
   /* Compare winning seq depth, attack/defend by winning seq */
-  int opponent_min_winning_depth = (opponent_winning_seq.empty()) ? INT_MAX : opponent_winning_seq.front().min_winning_depth;
+  int opponent_min_winning_depth = (opponent_critical_winning_seq.empty()) ? INT_MAX : opponent_critical_winning_seq.front().min_winning_depth;
   int self_min_winning_depth = (self_winning_seq.empty()) ? INT_MAX : self_winning_seq.front().min_winning_depth;
 
   if (self_min_winning_depth <= opponent_min_winning_depth && !self_winning_seq.empty()) {
@@ -168,7 +229,7 @@ int Policy::move_winning_seq(
   }
   else if (!opponent_winning_seq.empty()) {
     LOG_POLICY("Agent %d: defend winning (%d)\n", self_state.agent_id);
-    expand_threats_to_moves(opponent_winning_seq, self_state, next_moves);
+    expand_threats_to_moves(opponent_critical_winning_seq, self_state, next_moves);
     res = POLICY_SUCCESS;
   }
 

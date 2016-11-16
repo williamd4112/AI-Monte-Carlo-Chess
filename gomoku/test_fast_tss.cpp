@@ -1,4 +1,5 @@
 #include "fast_tss.h"
+#include "policy.h"
 #include "state.h"
 #include "constants.h"
 #include <iostream>
@@ -7,6 +8,8 @@
 #include <fstream>
 
 using namespace std;
+using namespace mcts;
+
 
 int main(int argc, char * argv[])
 {
@@ -28,22 +31,27 @@ int main(int argc, char * argv[])
 
   mcts::Tss tss(state);
   std::vector<mcts::threat_t> threats;
-  tss.find_all_threats(state.position, threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 255);
+  tss.find_all_threats(state.position, threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 4);
   sort(threats.begin(), threats.end(), greater<mcts::threat_t>());
 
   std::vector<mcts::threat_t> seq;
   int min_depth = 0x7fffffff;
-  cout << state << endl;
-  for (auto t : threats) {
-    cout << t << endl;
-  }
   std::cout << "filtered" << endl;
   for (auto t : threats) {
     if (t.final_winning && t.min_winning_depth <= min_depth) {
       cout << t << endl;
       min_depth = t.min_winning_depth;
+      seq.push_back(t);
     }
+  }
+  std::vector<threat_t> new_threats;
+  find_critical_winning_seq(state, seq, new_threats);
+
+  cout << "Critical " << new_threats.size() << endl;
+  for (auto & t : new_threats) {
+    cout << t << endl;
   }
 
   return 0;
+
 }

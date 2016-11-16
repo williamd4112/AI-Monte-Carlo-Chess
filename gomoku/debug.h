@@ -61,6 +61,12 @@
 #define LOG_POLICY(args...)
 #endif
 
+#ifdef _LOG_POLICY_CRITICAL
+#define LOG_POLICY_CRITICAL(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
+#else
+#define LOG_POLICY_CRITICAL(args...)
+#endif
+
 #ifdef _LOG_MCTS
 #define LOG_MCTS(format, args...) printf( "[%s:%d] " format, __FILE__, __LINE__, ##args)
 #define LOG_MCTS_EXPAND(states) for (auto & s : (states)) std::cout << "Expansion" << endl << s << std::endl

@@ -27,6 +27,18 @@ namespace mcts
 {
 class State;
 
+int find_one_step_winning(const std::vector<threat_t> & threats);
+void find_winning_sequence(const std::vector<threat_t> & threats, std::vector<threat_t> & seq);
+void find_winning_sequence_sorted(const State & opponent_state, const std::vector<threat_t> & threats, std::vector<threat_t> & seq);
+void find_critical_winning_seq(
+    const State & opponent_state,
+    const std::vector<threat_t> & opponent_winning_seq, std::vector<threat_t> & opponent_critical_winning_seq);
+
+void expand_threat_to_states(const threat_t & threat, const State & root_state, std::vector<State> & states);
+void expand_threats_to_states(const std::vector<threat_t> & threats, const State & root_state, std::vector<State> & states);
+void expand_threats_to_moves(const std::vector<threat_t> & threats, const State & root_state, std::vector<move_t> & moves);
+void expand_moves_to_states(const std::vector<move_t> & moves, const State & root_state, std::vector<State> & states);
+
 class Policy
 {
 public:

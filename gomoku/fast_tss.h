@@ -131,6 +131,7 @@ public:
 
   int find_all_threats(std::vector<threat_t> & threats, int begin_level, int end_level, int max_depth);
   int find_all_threats(const Position & position, std::vector<threat_t> & threats, int begin_level, int end_level, int max_depth);
+  std::pair<bool, int> find_all_threats_at(const threat_t & dependent_threat, std::vector<threat_t> & threats, int begin_level, int end_level, int max_depth);
 private:
   const State & m_state;
 

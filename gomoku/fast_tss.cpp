@@ -27,6 +27,13 @@ int Tss::find_all_threats(const Position & position, std::vector<threat_t> & thr
   return threats.size();
 }
 
+std::pair<bool, int> Tss::find_all_threats_at(
+    const threat_t & dependent_threat, std::vector<threat_t> & threats, int begin_level, int end_level, int max_depth)
+{
+  Position position = m_state.position;
+  return find_all_threats_at_gain_square_r(position, threats, begin_level, end_level, 0, max_depth, dependent_threat);
+}
+
 std::pair<int, int> Tss::is_gain_square(const threat_t & threat, const Position & position, int begin, int end, int dir, int agent_id)
 {
   int begin_pattern_id = g_threat_levels[begin][BEGIN];
@@ -155,7 +162,7 @@ std::pair<bool, int> Tss::find_all_threats_at_gain_square_r(
           const int match_pos = child_match.second;
           const char * pattern = g_threat_types[match_index];
           const int pattern_len = g_threat_types_len[match_index];
-
+          child_threat.match_pattern = pattern;
           DEBUG_FAST_TSS("Match from gain pattern[%d] %s (at %d)\n", match_index, pattern, match_pos);
           set_cost_squares(position, i, j, pattern, pattern_len, match_pos, opponent_id, dir_mod);
           LOG_FAST_TSS("Gain square from gain (%d, %d) [depth = %d]; Dependent (%d, %d)\n", i, j, depth, dependent_threat.point.i, dependent_threat.point.j);
@@ -224,7 +231,7 @@ std::pair<bool, int> Tss::find_all_threats_r(
             const int match_pos = match.second;
             const char * pattern = g_threat_types[match_index];
             const int pattern_len = g_threat_types_len[match_index];
-
+            child_threat.match_pattern = pattern;
             DEBUG_FAST_TSS("Match pattern %s (at %d)\n", pattern, match_pos);
             set_cost_squares(position, i, j, pattern, pattern_len, match_pos, opponent_id, dir);
             LOG_FAST_TSS("Gain square (%d, %d) [depth = %d]; Dependent (%d, %d)\n", i, j, depth, dependent_threat.point.i, dependent_threat.point.j);
@@ -240,7 +247,7 @@ std::pair<bool, int> Tss::find_all_threats_r(
 
             set_cost_squares(position, i, j, pattern, pattern_len, match_pos, EMPTY, dir);
             threats.push_back(child_threat);
-            break;
+            //break;
           }
        }
         position[i][j] = EMPTY;
