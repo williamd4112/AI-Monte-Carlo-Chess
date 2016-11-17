@@ -109,27 +109,31 @@ int main(int argc, char* argv[])
         }
       } else if (command == "undo") {
         int undo_size = 0;
-        if (mode == kModeAiWhite || mode == kModeAiBlack) {
-          undo_size = 2;
-        } else if (mode == kModeHumanAll || mode == kModeAiAll) {
-          undo_size = 1;
-        } else {
-          std::cerr << "Unknown mode" << '\n';
-        }
-        if ((int) history.size() < (undo_size + 1)) {
-          std::cerr << "Nothing to undo" << '\n';
-        } else {
-          for (int i = 0; i < undo_size; ++i) {
-            history.pop_back();
+        if (!is_game_finished) {
+          if (mode == kModeAiWhite || mode == kModeAiBlack) {
+            undo_size = 2;
+          } else if (mode == kModeHumanAll || mode == kModeAiAll) {
+            undo_size = 1;
+          } else {
+            std::cerr << "Unknown mode" << '\n';
           }
-          position = history.back();
-          move_num -= undo_size;
-          if (undo_size % 2 != 0) {
-            turn = !turn;
+          if ((int) history.size() < (undo_size + 1)) {
+            std::cerr << "Nothing to undo" << '\n';
+          } else {
+            for (int i = 0; i < undo_size; ++i) {
+              history.pop_back();
+            }
+            position = history.back();
+            move_num -= undo_size;
+            if (undo_size % 2 != 0) {
+              turn = !turn;
+            }
+            std::cout << "Undo " << undo_size << " moves" << '\n';
+            mcts::print_position(std::cout, position);
+            print_status(mode, turn, move_num, position);
           }
-          std::cout << "Undo " << undo_size << " moves" << '\n';
-          mcts::print_position(std::cout, position);
-          print_status(mode, turn, move_num, position);
+        } else {
+          std::cerr << "The game has finished" << '\n';
         }
       } else if (command == "mode") {
         check_arg_size(tokens, 2);
