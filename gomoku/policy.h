@@ -74,6 +74,7 @@ private:
   int move_middle(const State & state, std::vector<move_t> & next_moves);
   int move_approach(const State & state, std::vector<State> & next_states);
   int move_approach(const State & state, std::vector<move_t> & next_moves);
+  int move_random_approach(const State & self_state, std::vector<move_t> & next_moves, int num_samples=12);
 };
 
 }

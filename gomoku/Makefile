@@ -4,7 +4,7 @@ CFLAGS += -O3
 #CFLAGS += -g
 #CFLAGS += -D_LOG_FAST_TSS -D_DEBUG_FAST_TSS
 #CFLAGS += -D_LOG_POLICY -D_DEBUG_POLICY
-OBJS = state.o policy.o fast_tss.o pattern.o board.o util.o simulation.o simulation_usual.o sim.o
+OBJS = state.o policy.o fast_tss.o pattern.o board.o util.o sim.o
 
 OPT :=
 

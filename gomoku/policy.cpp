@@ -321,15 +321,19 @@ int Policy::move_rapid(const State & opponent_state, std::vector<move_t> & next_
 
   std::vector<threat_t> opponent_threats;
   Tss opponent_tss(opponent_state);
-  opponent_tss.find_all_threats(opponent_state.position, opponent_threats, THREAT_LEVEL_5, THREAT_LEVEL_5, 1);
+  opponent_tss.find_all_threats(opponent_state.position, opponent_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 1);
 
   std::vector<threat_t> self_threats;
   Tss self_tss(self_state);
-  self_tss.find_all_threats(self_state.position, self_threats, THREAT_LEVEL_5, THREAT_LEVEL_5, 1);
+  self_tss.find_all_threats(self_state.position, self_threats, THREAT_LEVEL_3, THREAT_LEVEL_5, 1);
 
   std::sort(opponent_threats.begin(), opponent_threats.end(), std::greater<threat_t>());
   std::sort(self_threats.begin(), self_threats.end(), std::greater<threat_t>());
   res = move_winning_seq(opponent_state, opponent_threats, self_state, self_threats, next_moves);
+
+  if (res != POLICY_SUCCESS) {
+    res = move_random_approach(self_state, next_moves);
+  }
 
   if (res != POLICY_SUCCESS) {
     res = move_when_no_threats(self_state, next_moves);
@@ -471,7 +475,14 @@ int Policy::move_balance(const State & opponent_state, std::vector<std::pair<int
     }
     else if (!opponent_top_threats.empty()) {
       res = move_threats(self_state, opponent_top_threats, next_moves);
+
+      if (!self_top_threats.empty()) {
+        move_threats(self_state, self_top_threats, next_moves);
+      }
     }
+
+    /* Keep exploration possibility */
+    move_random_approach(self_state, next_moves);
 #endif
   }
 
@@ -591,5 +602,39 @@ int Policy::move_approach(const State & state, std::vector<move_t> & next_moves)
   return next_moves.empty() ? POLICY_FAIL : POLICY_SUCCESS;
 }
 
+int Policy::move_random_approach(const State & self_state, std::vector<move_t> & next_moves, int num_samples)
+{
+  static const int RANDOM_RANGE = 2;
+
+  int w = self_state.board_width;
+  int h = self_state.board_height;
+  unsigned int random_ts = w / 2;
+  int res = POLICY_FAIL;
+  int count = 0;
+
+  for (int i = 0; i < h && count < num_samples; i++) {
+    for (int j = 0; j < w && count < num_samples; j++) {
+      if (self_state.position[i][j] != EMPTY) {
+        for (int k = 0; k < num_samples; k++) {
+          int sign = (m_random_gen() % w) < random_ts ? -1 : 1;
+          int r = i + sign * (m_random_gen() % RANDOM_RANGE);
+          int c = j + sign * (m_random_gen() % RANDOM_RANGE);
+
+          if (!in_boundary(r, c, w, h)) {
+            continue;
+          }
+
+          if (self_state.position[r][c] == EMPTY) {
+            next_moves.push_back(move_t(r, c));
+            res = POLICY_SUCCESS;
+            count++;
+          }
+        }
+      }
+    }
+  }
+
+  return res;
+}
 
 }
