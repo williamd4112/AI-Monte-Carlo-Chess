@@ -110,9 +110,14 @@ void load_position_from(std::istream & in, Position & position, int w, int h)
 {
   for (int i = 0; i < h; i++) {
     for (int j = 0; j < w; j++) {
-      int val;
+      char val;
       in >> val;
-      position[i][j] = val;
+      if (val == 'O' || val == 'o')
+        position[i][j] = BLACK;
+      if (val == 'X' || val == 'x')
+        position[i][j] = WHITE;
+      if (val == '.')
+        position[i][j] = EMPTY;
     }
   }
 }

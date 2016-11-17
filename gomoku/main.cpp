@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <vector>
 
 #include "board.h"
@@ -27,12 +28,12 @@ const int kModeAiAll = 4;
 
 const int kHeight = 15;
 const int kWidth = 15;
-const unsigned kMaxDuration = 5000; // In milliseconds
-const unsigned kMaxIterationCount = 5000;
+const unsigned kMaxDuration = 10000; // In milliseconds
+const unsigned kMaxIterationCount = 1000;
 const double kExplore = 1.41;
 const bool kVerbose = true;
 
-int main()
+int main(int argc, char * argv[])
 {
   std::string input;
   // Play mode
@@ -45,6 +46,11 @@ int main()
   bool is_game_finished = false;
   // Position
   mcts::Position position(kHeight, mcts::Row(kWidth, mcts::EMPTY));
+
+  if (argc > 1) {
+    std::ifstream in(argv[1]);
+    mcts::load_position_from(in, position, kWidth, kHeight);
+  }
 
   std::vector<std::string> tokens;
   std::cout << "Enter commands (Enter 'help' to see list of commands)" << '\n';
