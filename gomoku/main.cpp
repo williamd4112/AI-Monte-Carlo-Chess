@@ -28,12 +28,12 @@ const int kModeAiAll = 4;
 
 const int kHeight = 15;
 const int kWidth = 15;
-const unsigned kMaxDuration = 10000; // In milliseconds
+const unsigned kMaxDuration = 9500; // In milliseconds
 const unsigned kMaxIterationCount = 1000;
 const double kExplore = 1.41;
 const bool kVerbose = true;
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
   std::string input;
   // Play mode
@@ -46,11 +46,16 @@ int main(int argc, char * argv[])
   bool is_game_finished = false;
   // Position
   mcts::Position position(kHeight, mcts::Row(kWidth, mcts::EMPTY));
+  // History position
+  std::vector<mcts::Position> history;
 
   if (argc > 1) {
     std::ifstream in(argv[1]);
     mcts::load_position_from(in, position, kWidth, kHeight);
   }
+
+  // Push the initial position into history
+  history.push_back(position);
 
   std::vector<std::string> tokens;
   std::cout << "Enter commands (Enter 'help' to see list of commands)" << '\n';
@@ -65,6 +70,8 @@ int main(int argc, char * argv[])
         turn = mcts::BLACK;
         is_game_finished = false;
         position = mcts::Position(kHeight, mcts::Row(kWidth, mcts::EMPTY));
+        history.clear();
+        history.push_back(position);
         std::cout << "Started new position" << '\n';
       } else if (command == "q" || command == "quit") {
         break;
@@ -85,6 +92,7 @@ int main(int argc, char * argv[])
               position[row][col] = turn;
               move_num += 1;
               turn = !turn;
+              history.push_back(position);
               if (mode == kModeHumanAll) {
                 mcts::print_position(std::cout, position);
               }
@@ -98,6 +106,30 @@ int main(int argc, char * argv[])
           }
         } else {
           std::cerr << "The game has finished" << '\n';
+        }
+      } else if (command == "undo") {
+        int undo_size = 0;
+        if (mode == kModeAiWhite || mode == kModeAiBlack) {
+          undo_size = 2;
+        } else if (mode == kModeHumanAll || mode == kModeAiAll) {
+          undo_size = 1;
+        } else {
+          std::cerr << "Unknown mode" << '\n';
+        }
+        if ((int) history.size() < (undo_size + 1)) {
+          std::cerr << "Nothing to undo" << '\n';
+        } else {
+          for (int i = 0; i < undo_size; ++i) {
+            history.pop_back();
+          }
+          position = history.back();
+          move_num -= undo_size;
+          if (undo_size % 2 != 0) {
+            turn = !turn;
+          }
+          std::cout << "Undo " << undo_size << " moves" << '\n';
+          mcts::print_position(std::cout, position);
+          print_status(mode, turn, move_num, position);
         }
       } else if (command == "mode") {
         check_arg_size(tokens, 2);
@@ -125,6 +157,7 @@ int main(int argc, char * argv[])
         std::cout << "(q|quit): quit the program" << '\n';
         std::cout << "(m|move) <pt>: make a move by placing a stone on PT"
                   << '\n';
+        std::cout << "undo: undo the move" << '\n';
         std::cout << "mode <mode>: swtich mode to MODE, available modes:"
                   << '\n'
                   << "  (b|ai_black): AI playing black" << '\n'
@@ -140,6 +173,7 @@ int main(int argc, char * argv[])
     if (!is_game_finished &&
         check_ai_play(mode, turn, position)) {
       move_num += 1;
+      history.push_back(position);
       mcts::print_position(std::cout, position);
       std::cout << '\n';
       print_status(mode, turn, move_num, position);
